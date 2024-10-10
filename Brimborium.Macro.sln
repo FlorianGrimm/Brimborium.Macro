@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Macro.Analyzers", "Brimborium.Macro.Analyzers\Brimborium.Macro.Analyzers.csproj", "{BC7D30FB-8A8E-4EBC-B986-DB2E5B688B9A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Macro.Analyzers.UnitTests", "Brimborium.Macro.Analyzers.UnitTests\Brimborium.Macro.Analyzers.UnitTests.csproj", "{A5D0EE3A-B198-439F-9BDD-EDAF4190A9B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Macro.Sample", "Brimborium.Macro.Sample\Brimborium.Macro.Sample.csproj", "{6F695792-94F9-4850-B4DF-C8E06D0FC3D7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F3E5085C-A66E-4598-9C4E-ACBE39FAD5AB}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Macro.CodeFixes", "Brimborium.Macro.CodeFixes\Brimborium.Macro.CodeFixes.csproj", "{ECE36C1E-33AF-4750-98E2-5FD4E9D8A359}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC7D30FB-8A8E-4EBC-B986-DB2E5B688B9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC7D30FB-8A8E-4EBC-B986-DB2E5B688B9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC7D30FB-8A8E-4EBC-B986-DB2E5B688B9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC7D30FB-8A8E-4EBC-B986-DB2E5B688B9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5D0EE3A-B198-439F-9BDD-EDAF4190A9B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5D0EE3A-B198-439F-9BDD-EDAF4190A9B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5D0EE3A-B198-439F-9BDD-EDAF4190A9B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5D0EE3A-B198-439F-9BDD-EDAF4190A9B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F695792-94F9-4850-B4DF-C8E06D0FC3D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F695792-94F9-4850-B4DF-C8E06D0FC3D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F695792-94F9-4850-B4DF-C8E06D0FC3D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F695792-94F9-4850-B4DF-C8E06D0FC3D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECE36C1E-33AF-4750-98E2-5FD4E9D8A359}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECE36C1E-33AF-4750-98E2-5FD4E9D8A359}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECE36C1E-33AF-4750-98E2-5FD4E9D8A359}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECE36C1E-33AF-4750-98E2-5FD4E9D8A359}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BD35154A-2782-4B09-9BEC-9F15C0B5C392}
+	EndGlobalSection
+EndGlobal

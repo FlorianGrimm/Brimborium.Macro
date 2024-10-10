@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# Macro: Run the Macro
+dotnet_diagnostic.Macro.severity = error
