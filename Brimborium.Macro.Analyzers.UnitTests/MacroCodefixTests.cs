@@ -1,22 +1,20 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Testing;
-//using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Xunit;
 
-/*
-using VerifyCS = CSharpCodeFixVerifier<
+using VerifyCS = Brimborium.Macro.CSharpCodeFixVerifier<
     Brimborium.Macro.MacroAnalyzer,
     Brimborium.Macro.MacroCodeFixProvider>;
-*/
-using VerifyCS = Brimborium.Macro.CSharpAnalyzerVerifier<Brimborium.Macro.MacroAnalyzer>;
 
 namespace Brimborium.Macro;
 
-public class MacroAnalyzerTests {
+public class MacroCodefixTests
+{
     [Fact]
-    public async Task MacroAnalyzer_Diagnostic() {
+    public async Task MacroCodefixTest()
+    {
         const string testCode = """
             namespace Brimborium.Macro.Sample;
 
@@ -28,11 +26,10 @@ public class MacroAnalyzerTests {
                 }
             }
             """;
-        VerifyCS.Test test = new() {
+        var test = new VerifyCS.Test()
+        {
             TestCode = testCode,
-            ExpectedDiagnostics = {
-                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticId).WithLocation(5, 9)
-            }
+            BatchFixedCode = testCode
         };
         await test.RunAsync();
     }

@@ -22,7 +22,7 @@ namespace Brimborium.Macro;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MacroCodeFixProvider)), Shared]
 public class MacroCodeFixProvider : CodeFixProvider {
     public sealed override ImmutableArray<string> FixableDiagnosticIds {
-        get { return ImmutableArray.Create(MacroAnalyzer.DiagnosticId); }
+        get { return ImmutableArray.Create(MacroAnalyzer.RunDiagnosticId); }
     }
 
     public sealed override FixAllProvider GetFixAllProvider() {
@@ -31,6 +31,123 @@ public class MacroCodeFixProvider : CodeFixProvider {
     }
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context) {
+        var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        if (syntaxRoot is null) { return; }
+
+        var diagnostic = context.Diagnostics.First();
+        var diagnosticSpan = diagnostic.Location.SourceSpan;
+
+        var token = syntaxRoot.FindToken(diagnosticSpan.Start, findInsideTrivia: true);
+
+        //var regionDirectiveTriviaSyntax = token.AncestorsAndSelf.OfType<RegionDirectiveTriviaSyntax>().FirstOrDefault();
+        var regionDirectiveTriviaSyntax = token.Parent?.AncestorsAndSelf().OfType<RegionDirectiveTriviaSyntax>().FirstOrDefault();
+        if (regionDirectiveTriviaSyntax is null) { return; }
+
+        //var regionDirectiveTriviaSyntax = token.AncestorsAndSelf().OfType<RegionDirectiveTriviaSyntax>().FirstOrDefault();
+
+        // Register a code action that will invoke the fix.
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                title: CodeFixesResources.CodeFixTitle,
+                createChangedDocument: c => MacroRunAsync(context.Document, regionDirectiveTriviaSyntax, c),
+                equivalenceKey: nameof(CodeFixesResources.CodeFixTitle)),
+            diagnostic);
+    }
+
+    private static async Task<Document> MacroRunAsync(
+        Document document,
+        RegionDirectiveTriviaSyntax regionDirectiveTriviaSyntax,
+        CancellationToken cancellationToken) {
+
+        Stack<DirectiveBlock> stackDirectiveBlocks = new();
+        var currentDirectiveBlock = new DirectiveBlock() { StartSyntax = regionDirectiveTriviaSyntax };
+        stackDirectiveBlocks.Push(currentDirectiveBlock);
+        DirectiveTriviaSyntax currentDirectiveTriviaSyntax = regionDirectiveTriviaSyntax;
+
+        while (true) {
+            var nextDirectiveTriviaSyntax = currentDirectiveTriviaSyntax.GetNextDirective((directiveTriviaSyntax) => directiveTriviaSyntax is RegionDirectiveTriviaSyntax or EndRegionDirectiveTriviaSyntax);
+            if (nextDirectiveTriviaSyntax is null) {
+                break;
+            }
+            currentDirectiveTriviaSyntax = nextDirectiveTriviaSyntax;
+            if (currentDirectiveTriviaSyntax is RegionDirectiveTriviaSyntax start) {
+                var nextDirectiveBlock = new DirectiveBlock() { StartSyntax = start };
+                stackDirectiveBlocks.Push(nextDirectiveBlock);
+                currentDirectiveBlock.Children.Add(nextDirectiveBlock);
+                currentDirectiveBlock = nextDirectiveBlock;
+            }
+            if (currentDirectiveTriviaSyntax is EndRegionDirectiveTriviaSyntax end) {
+                currentDirectiveBlock.EndSyntax = end;
+                currentDirectiveBlock = stackDirectiveBlocks.Pop();
+                if (stackDirectiveBlocks.Count == 0) {
+                    break;
+                }
+                currentDirectiveBlock = stackDirectiveBlocks.Peek();
+            }
+        }
+        bool addEndRegion = (stackDirectiveBlocks.Count > 0);
+
+        var regionName = regionDirectiveTriviaSyntax.EndOfDirectiveToken.ToFullString();
+        if (!regionName.StartsWith("macro ", StringComparison.OrdinalIgnoreCase)) { return document; }
+        var macro = regionName.Substring(6).Trim();
+
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceString = sourceText.ToString();
+
+        var startOfStartSyntax = currentDirectiveBlock.StartSyntax.SpanStart;
+        var startOfStartLine = startOfStartSyntax;
+        while (0 < startOfStartLine) {
+            if (sourceString[startOfStartLine - 1] == '\n'
+                || sourceString[startOfStartLine - 1] == '\r') { break; }
+            startOfStartLine--;
+        }
+        var stringIndent = sourceString.Substring(startOfStartLine, startOfStartSyntax - startOfStartLine);
+        int endOfStartSyntax = currentDirectiveBlock.StartSyntax.EndOfDirectiveToken.FullSpan.End;
+        if (sourceString[endOfStartSyntax] == '\r') {
+            endOfStartSyntax++;
+        }
+        if (sourceString[endOfStartSyntax] == '\n') {
+            endOfStartSyntax++;
+        }
+        var stringBefore = sourceString.Substring(0, endOfStartSyntax);
+
+        int startOfEndSyntax;
+        if (currentDirectiveBlock.EndSyntax is { } endSyntax) {
+            startOfEndSyntax = endSyntax.FullSpan.Start;
+            while (0 < startOfEndSyntax
+                && !(sourceString[startOfEndSyntax - 1] == '\r'
+                   || sourceString[startOfEndSyntax - 1] == '\n')
+                ) {
+                startOfEndSyntax--;
+            }
+        } else {
+            startOfEndSyntax = endOfStartSyntax;
+            addEndRegion = true;
+        }
+        var stringAfter = sourceString.Substring(startOfEndSyntax);
+
+        var filePath = document.FilePath;
+        var folders = document.Folders;
+
+        string replacement = RunMacro(macro, stringIndent, cancellationToken);
+        if (!(replacement.EndsWith("\r", StringComparison.Ordinal))
+            || (replacement.EndsWith("\n", StringComparison.Ordinal))) {
+            replacement += "\r\n";
+        }
+
+        var stringNext = stringBefore + replacement + stringAfter;
+        var sourceTextNext = SourceText.From(stringNext);
+        var documentNext = document.WithText(sourceTextNext);
+        return documentNext;
+    }
+
+    private static string RunMacro(string macro, string stringIndent, CancellationToken cancellationToken) {
+        return $"{stringIndent}// Macro: {macro}";
+    }
+
+
+#warning WEICHEI
+    public async Task RegisterCodeFixesAsyncGone(CodeFixContext context) {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         if (root is null) { return; }
 
@@ -51,6 +168,7 @@ public class MacroCodeFixProvider : CodeFixProvider {
             diagnostic);
     }
 
+#warning WEICHEI
     private static async Task<Document> MakeConstAsync(
         Document document,
         LocalDeclarationStatementSyntax localDeclaration,
@@ -115,4 +233,10 @@ public class MacroCodeFixProvider : CodeFixProvider {
         // Return document with transformed tree.
         return document.WithSyntaxRoot(newRoot);
     }
+}
+
+public class DirectiveBlock {
+    public required RegionDirectiveTriviaSyntax StartSyntax { get; set; }
+    public List<DirectiveBlock> Children { get; } = new();
+    public EndRegionDirectiveTriviaSyntax? EndSyntax { get; set; }
 }

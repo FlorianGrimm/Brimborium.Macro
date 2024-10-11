@@ -31,7 +31,7 @@ public class MacroAnalyzerTests {
         VerifyCS.Test test = new() {
             TestCode = testCode,
             ExpectedDiagnostics = {
-                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticId).WithLocation(5, 9)
+                VerifyCS.Diagnostic(MacroAnalyzer.RunDiagnosticId).WithLocation(5, 9)
             }
         };
         await test.RunAsync();
