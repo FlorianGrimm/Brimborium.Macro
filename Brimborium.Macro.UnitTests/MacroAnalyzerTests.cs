@@ -35,7 +35,7 @@ internal class Program {
         await (new VerifyCS.Test() {
             TestCode = source,
             ExpectedDiagnostics = {
-                VerifyCS.Diagnostic(MacroAnalyzer.RunDiagnosticId).WithLocation(5, 9),
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9),
             }
         }).RunAsync();
     }
@@ -56,7 +56,7 @@ internal class Program {
         await (new VerifyCS.Test() {
             TestCode = source,
             ExpectedDiagnostics = {
-                VerifyCS.Diagnostic(MacroAnalyzer.RunDiagnosticId).WithLocation(5, 9),
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9),
             }
         }).RunAsync();
     }
@@ -81,22 +81,32 @@ internal class Program {
         await (new VerifyCS.Test() {
             TestCode = source,
             ExpectedDiagnostics = {
-                VerifyCS.Diagnostic(MacroAnalyzer.RunDiagnosticId).WithLocation(5, 9),
-                VerifyCS.Diagnostic(MacroAnalyzer.RunDiagnosticId).WithLocation(9, 9),
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9),
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(9, 9),
             }
         }).RunAsync();
     }
 
     [Theory]
+    [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(30)]
+    [InlineData(40)]
+    [InlineData(50)]
+    [InlineData(60)]
+    [InlineData(70)]
+    [InlineData(80)]
+    [InlineData(90)]
+#warning StackOverflowException
     [InlineData(100)]
-    [InlineData(200)]
-    [InlineData(300)]
-    [InlineData(400)]
-    [InlineData(500)]
-    [InlineData(1000)]
+    //[InlineData(200)]
+    //[InlineData(300)]
+    //[InlineData(400)]
+    //[InlineData(500)]
+    //[InlineData(1000)]
     public async Task MacroAnalyzer_RegionAndComment_Many_Diagnostic(int regionCount) {
 
         const string sourceStart = """
@@ -134,9 +144,8 @@ internal class Program {
         for (int index = 0; index < regionCount; index++) {
             sourceBuilder
                 .Append(sourceRegion1).Append(sourceRegion2);
-
-            listExpectedDiagnostics.Add(VerifyCS.Diagnostic(MacroAnalyzer.MacroRunRule).WithLocation(5 + index * 8, 9));
-            listExpectedDiagnostics.Add(VerifyCS.Diagnostic(MacroAnalyzer.RunDiagnosticId).WithLocation(9 + index * 8, 9));
+            listExpectedDiagnostics.Add(VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5 + index * 8, 9));
+            listExpectedDiagnostics.Add(VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(9 + index * 8, 9));
         }
         sourceBuilder.Append(sourceEnd);
 

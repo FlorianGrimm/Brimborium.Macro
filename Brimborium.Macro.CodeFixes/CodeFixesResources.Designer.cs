@@ -61,7 +61,7 @@ namespace Brimborium.Macro {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CodeFixTitle.
+        ///   Looks up a localized string similar to Run macro.
         /// </summary>
         public static string CodeFixTitle {
             get {

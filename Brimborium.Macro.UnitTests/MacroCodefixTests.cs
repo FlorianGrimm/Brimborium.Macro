@@ -31,7 +31,7 @@ internal class Program {
 
 
         DiagnosticResult expected0 =
-            VerifyCS.Diagnostic(MacroAnalyzer.MacroRunRule).WithLocation(5, 9);
+            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9);
 
         await VerifyCS.VerifyAnalyzerAsync(source, expected0);
 
@@ -58,7 +58,7 @@ internal class Program {
                     ExpectedDiagnostics = { expected0, },
                 },
             CodeActionIndex = 0,
-            CodeActionEquivalenceKey = nameof(CodeFixesResources.CodeFixTitle) //string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+            CodeActionEquivalenceKey = MacroAnalyzer.DiagnosticIdMacroRun
         }.RunAsync();
     }
 
@@ -78,7 +78,7 @@ internal class Program {
 
 
         DiagnosticResult expected0 =
-            VerifyCS.Diagnostic(MacroAnalyzer.MacroRunRule).WithLocation(5, 9);
+            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9);
 
         await VerifyCS.VerifyAnalyzerAsync(source, expected0);
 
@@ -104,8 +104,8 @@ internal class Program {
                     Sources = { fixedCode } ,
                     ExpectedDiagnostics = { expected0},
                 },
-            CodeActionIndex = 0,
-            CodeActionEquivalenceKey = nameof(CodeFixesResources.CodeFixTitle) //string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+            //CodeActionIndex = 0,
+            CodeActionEquivalenceKey = MacroAnalyzer.DiagnosticIdMacroRun
         }.RunAsync();
     }
 
@@ -129,10 +129,10 @@ internal class Program {
 
 
         DiagnosticResult expected0 =
-            VerifyCS.Diagnostic(MacroAnalyzer.MacroRunRule).WithLocation(5, 9);
+            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9);
 
         DiagnosticResult expected1 =
-            VerifyCS.Diagnostic(MacroAnalyzer.RunDiagnosticId).WithLocation(9, 9);
+            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(9, 9);
 
 
         await VerifyCS.VerifyAnalyzerAsync(source, expected0, expected1);
@@ -183,7 +183,7 @@ internal class Program {
                 },
             NumberOfFixAllIterations = 2,
             //CodeActionIndex = 0,
-            CodeActionEquivalenceKey = nameof(CodeFixesResources.CodeFixTitle) //string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+            CodeActionEquivalenceKey = MacroAnalyzer.DiagnosticIdMacroRun
         }.RunAsync();
 
         /*
@@ -198,7 +198,7 @@ internal class Program {
                     ExpectedDiagnostics = { expected0, expected1 },
                 },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(CodeFixesResources.CodeFixTitle) //string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+            CodeActionEquivalenceKey = MacroAnalyzer.DiagnosticIdMacroRun
         }.RunAsync();
         */
     }
@@ -291,7 +291,7 @@ internal class Program {
                 },
             NumberOfFixAllIterations = 1 * regionCount,
             //CodeActionIndex = 0,
-            CodeActionEquivalenceKey = nameof(CodeFixesResources.CodeFixTitle) //string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+            CodeActionEquivalenceKey = MacroAnalyzer.DiagnosticIdMacroRun
         };
         test.TestState.ExpectedDiagnostics.AddRange(arrExpectedDiagnostics);
         test.FixedState.ExpectedDiagnostics.AddRange(arrExpectedDiagnostics);
@@ -395,7 +395,7 @@ internal class Program {
                 },
             NumberOfFixAllIterations = 2 * regionCount,
             //CodeActionIndex = 0,
-            CodeActionEquivalenceKey = nameof(CodeFixesResources.CodeFixTitle) //string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+            CodeActionEquivalenceKey = MacroAnalyzer.DiagnosticIdMacroRun
         };
         test.TestState.ExpectedDiagnostics.AddRange(arrExpectedDiagnostics);
         test.FixedState.ExpectedDiagnostics.AddRange(arrExpectedDiagnostics);

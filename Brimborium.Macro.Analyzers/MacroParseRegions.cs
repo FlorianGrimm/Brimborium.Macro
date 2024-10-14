@@ -13,7 +13,8 @@ public class MacroParseRegions {
         SyntaxTree tree,
         Location? locationToSearch,
         CancellationToken cancellationToken) {
-        return new MacroParseRegions(locationToSearch).parseRegionsImpl(tree, cancellationToken);
+        var parser = new MacroParseRegions(locationToSearch);
+        return parser.parseRegionsImpl(tree, cancellationToken);
     }
 
     private string? Error = default;
@@ -105,6 +106,21 @@ public class MacroParseRegions {
         string? fullText = default;
 
         var rootNode = tree.GetRoot();
+
+        //List<SyntaxToken> listSyntaxToken = new(1024);
+        //foreach (var token in rootNode.DescendantTokens()) {
+        //    if (token.IsKind(SyntaxKind.RegionDirectiveTrivia)
+        //        || token.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
+        //        || token.IsKind(SyntaxKind.MultiLineCommentTrivia)
+        //        ) {
+        //        listSyntaxToken.Add(token);
+        //    }
+        //}
+
+        //foreach (var syntaxToken in listSyntaxToken) {
+        //    var node = syntaxToken.Parent;
+        //    if (node is null) { continue; }
+
         foreach (var node in rootNode.DescendantNodesAndTokensAndSelf()) {
             cancellationToken.ThrowIfCancellationRequested();
 

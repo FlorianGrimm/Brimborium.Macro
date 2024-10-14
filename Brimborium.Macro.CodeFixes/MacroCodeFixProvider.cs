@@ -24,7 +24,7 @@ namespace Brimborium.Macro;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MacroCodeFixProvider)), Shared]
 public class MacroCodeFixProvider : CodeFixProvider {
     public sealed override ImmutableArray<string> FixableDiagnosticIds {
-        get { return ImmutableArray.Create(MacroAnalyzer.RunDiagnosticId); }
+        get { return ImmutableArray.Create(MacroAnalyzer.DiagnosticIdMacroRun); }
     }
 
     public sealed override FixAllProvider GetFixAllProvider() {
@@ -47,24 +47,34 @@ public class MacroCodeFixProvider : CodeFixProvider {
         var diagnosticSpan = diagnosticLocation.SourceSpan;
         var diagnosticToken = syntaxRoot.FindToken(diagnosticSpan.Start, findInsideTrivia: true);
 
-        RegisterCodeFixes(context, diagnostic, syntaxRoot, diagnosticToken);
+        RegisterCodeFixesSync(context, diagnostic, syntaxRoot, diagnosticToken);
     }
 
-    private void RegisterCodeFixes(CodeFixContext context, Diagnostic diagnostic, SyntaxNode syntaxRoot, SyntaxToken diagnosticToken) {
+    // sync
+    private void RegisterCodeFixesSync(CodeFixContext context, Diagnostic diagnostic, SyntaxNode syntaxRoot, SyntaxToken diagnosticToken) {
         var diagnosticLocation = diagnostic.Location;
 
         if (diagnosticToken.Parent?.AncestorsAndSelf() is { } listAncestors) {
             foreach (var node in listAncestors) {
-                if (node is RegionDirectiveTriviaSyntax nodeRegionDirectiveTriviaSyntax) {
-                    if (diagnosticLocation == nodeRegionDirectiveTriviaSyntax.GetLocation()) {
-                        // Register a code action that will invoke the fix.
-                        context.RegisterCodeFix(
-                            CodeAction.Create(
-                                title: CodeFixesResources.CodeFixTitle,
-                                createChangedDocument: c => MacroRunAsync(context.Document, diagnosticLocation, c),
-                                equivalenceKey: nameof(CodeFixesResources.CodeFixTitle)),
-                            diagnostic);
-                        return;
+                if (node is RegionDirectiveTriviaSyntax regionDirective) {
+                    if (diagnosticLocation == regionDirective.GetLocation()) {
+                        if (!regionDirective.EndOfDirectiveToken.IsMissing) {
+                            var regionText = regionDirective.EndOfDirectiveToken.ToFullString().AsSpan();
+                            if (MacroParser.TryGetRegionBlockStart(regionText, out var macroText)) {
+                                var macroTextString = macroText.ToString();
+                                var sourceSpan = diagnosticLocation.SourceSpan;
+                                // Register a code action that will invoke the fix.
+                                context.RegisterCodeFix(
+                                    CodeAction.Create(
+                                        title: $"{CodeFixesResources.CodeFixTitle} {macroTextString}",
+                                        createChangedDocument: c => MacroRunAsync(context.Document, sourceSpan, c),
+                                        equivalenceKey: MacroAnalyzer.DiagnosticIdMacroRun
+                                        //equivalenceKey: $"{nameof(CodeFixesResources.CodeFixTitle)}-{sourceSpan.Start}-{sourceSpan.End}"
+                                        ),
+                                    diagnostic);
+                                return;
+                            }
+                        }
                     }
                 }
             }
@@ -75,12 +85,16 @@ public class MacroCodeFixProvider : CodeFixProvider {
                     if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)) {
                         if (diagnosticLocation == trivia.GetLocation()) {
                             ReadOnlySpan<char> commentText = fullText.AsSpan(trivia.FullSpan.Start, trivia.FullSpan.Length);
-                            if (1 == MacroParser.TryGetMultiLineComment(commentText, out var _)) {
+                            if (1 == MacroParser.TryGetMultiLineComment(commentText, out var macroText)) {
+                                var macroTextString = macroText.ToString();
+                                var sourceSpan = diagnosticLocation.SourceSpan;
                                 context.RegisterCodeFix(
                                     CodeAction.Create(
-                                        title: CodeFixesResources.CodeFixTitle,
-                                        createChangedDocument: c => MacroRunAsync(context.Document, diagnosticLocation, c),
-                                        equivalenceKey: nameof(CodeFixesResources.CodeFixTitle)),
+                                        title: $"{CodeFixesResources.CodeFixTitle} {macroTextString}",
+                                        createChangedDocument: c => MacroRunAsync(context.Document, sourceSpan, c),
+                                        equivalenceKey: MacroAnalyzer.DiagnosticIdMacroRun
+                                        //equivalenceKey: $"{nameof(CodeFixesResources.CodeFixTitle)}-{sourceSpan.Start}-{sourceSpan.End}"
+                                        ),
                                     diagnostic);
                                 return;
                             }
@@ -93,8 +107,9 @@ public class MacroCodeFixProvider : CodeFixProvider {
 
     private static async Task<Document> MacroRunAsync(
         Document document,
-        Location location,
+        TextSpan sourceSpan,
         CancellationToken cancellationToken) {
+
         //if (document.TryGetSyntaxRoot(out var syntaxRoot)) {
         //    //
         //} else {
@@ -112,33 +127,54 @@ public class MacroCodeFixProvider : CodeFixProvider {
                 return document;
             }
         }
-
+        Location location = Location.Create(syntaxTree, sourceSpan);
         var macroParseRegionsResults = MacroParseRegions.ParseRegions(syntaxTree, location, cancellationToken);
         if (macroParseRegionsResults.Error is { }) { return document; }
         if (macroParseRegionsResults.RegionBlockAtLocation is not { } regionBlock) { return document; }
-        var documentNext = await UpdateMacroRegionAsync(document, macroParseRegionsResults, regionBlock, cancellationToken);
-        return documentNext;
-    }
-
-    private static async Task<Document> UpdateMacroRegionAsync(
-        Document document,
-        MacroParseRegionsResult macroParseRegionsResults,
-        RegionBlock regionBlock,
-        CancellationToken cancellationToken) {
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var sourceString = sourceText.ToString();
 
+        var macroUpdateRegionPreparation = PrepareUpdateMacroRegion(sourceString, macroParseRegionsResults, regionBlock, cancellationToken);
+        if (macroUpdateRegionPreparation is null) { return document; }
+
+        string stringNextMacroContent;
+        try {
+            stringNextMacroContent = RunMacro(
+                macroUpdateRegionPreparation.Macro,
+                macroUpdateRegionPreparation.StringIndent,
+                cancellationToken);
+        } catch (System.Exception) {
+            return document;
+        }
+
+        if (MacroParser.EqualsLines(
+            macroUpdateRegionPreparation.PrevMacroRegionContent, stringNextMacroContent)) {
+            return document;
+        }
+
+        return ApplyUpdateMacroRegion(document, sourceString, macroUpdateRegionPreparation, stringNextMacroContent);
+
+        //var documentNext = await UpdateMacroRegionAsync(document, sourceString, macroParseRegionsResults, regionBlock, cancellationToken);
+        //return documentNext;
+    }
+
+    private static MacroUpdateRegionPreparation? PrepareUpdateMacroRegion(
+        //Document document, 
+        string sourceString,
+        MacroParseRegionsResult macroParseRegionsResults,
+        RegionBlock regionBlock,
+        CancellationToken cancellationToken) {
         regionBlock.Start.Deconstruct(out var regionStartText, out var regionStartKind, out var regionStartSyntaxTrivia, out var regionStartRegionDirective, out var location);
         if ((regionStartKind == ParserNodeOrTriviaKind.None)
             || (regionStartRegionDirective is null && regionStartSyntaxTrivia.IsKind(SyntaxKind.None))
             || (location is null)
-            ) { return document; }
+            ) { return default; }
 
         regionBlock.End.Deconstruct(out var regionEndText, out var regionEndKind, out var regionEndSyntaxTrivia, out var regionEndRegionDirective, out var regionEndLocation);
         if ((regionEndKind == ParserNodeOrTriviaKind.None)
             || (regionEndRegionDirective is null && regionEndSyntaxTrivia.IsKind(SyntaxKind.None))
             || (location is null)
-            ) { return document; }
+            ) { return default; }
 
         TextSpan regionBlockStartSourceSpan;
         int endOfRegionStart;
@@ -189,7 +225,7 @@ public class MacroCodeFixProvider : CodeFixProvider {
                 endOfMacroContent = MacroParser.GotoLeftWhileWhitespace(sourceString, endOfMacroContent);
             }
         } else {
-            return document;
+            return default;
         }
 
         //while (0 < startOfStartLine) {
@@ -204,32 +240,39 @@ public class MacroCodeFixProvider : CodeFixProvider {
         System.Diagnostics.Debug.Assert(endOfMacroContent <= startOfRegionEnd);
 
         var stringIndent = "        ";
-        var stringBefore = sourceString[..endOfRegionStart];
-        var stringOldMacroContent = sourceString[startOfMacroContent..endOfMacroContent];
-        var stringAfter = sourceString[startOfRegionEnd..];
+        var stringSourceCodeBefore = sourceString[..endOfRegionStart];
+        var stringPrevMacroContent = sourceString[startOfMacroContent..endOfMacroContent];
+        var stringSourceCodeAfter = sourceString[startOfRegionEnd..];
 
-        var filePath = document.FilePath;
-        var folders = document.Folders;
-        var stringPrevMacroContent = regionStartText;
-        if (stringPrevMacroContent is null || stringPrevMacroContent.Length == 0) { return document; }
-        string stringNextMacroContent = RunMacro(
+        //var filePath = document.FilePath;
+        //var folders = document.Folders;
+
+        var macro = regionStartText;
+        if (macro is null || macro.Length == 0) { return default; }
+
+        MacroUpdateRegionPreparation result = new(
+            stringSourceCodeBefore,
             stringPrevMacroContent,
+            macro,
             stringIndent,
-            cancellationToken);
+            stringSourceCodeAfter);
+        return result;
+    }
 
-        if (MacroParser.EqualsLines(stringOldMacroContent, stringNextMacroContent)) {
-            return document;
-        }
 
-        // build the new source
-        StringBuilder sbNext = new(sourceString.Length);
-        sbNext.Append(stringBefore);
-        if (MacroParser.NeedNewLine(stringBefore, stringNextMacroContent)) { sbNext.Append("\r\n"); }
-        sbNext.Append(stringNextMacroContent);
-        if (MacroParser.NeedNewLine(stringNextMacroContent, stringAfter)) { sbNext.Append("\r\n"); }
-        sbNext.Append(stringAfter);
-        var stringNext = sbNext.ToString();
-        var sourceTextNext = SourceText.From(stringNext);
+    private static Document ApplyUpdateMacroRegion(
+        Document document,
+        string sourceString,
+        MacroUpdateRegionPreparation macroUpdateRegionPreparation,
+        string stringNextMacroContent) {
+        StringBuilder sourceCodeBuilderNext = new(sourceString.Length);
+        sourceCodeBuilderNext.Append(macroUpdateRegionPreparation.SourceCodeBefore);
+        if (MacroParser.NeedNewLine(macroUpdateRegionPreparation.SourceCodeBefore, stringNextMacroContent)) { sourceCodeBuilderNext.Append("\r\n"); }
+        sourceCodeBuilderNext.Append(stringNextMacroContent);
+        if (MacroParser.NeedNewLine(stringNextMacroContent, macroUpdateRegionPreparation.SourceCodeAfter)) { sourceCodeBuilderNext.Append("\r\n"); }
+        sourceCodeBuilderNext.Append(macroUpdateRegionPreparation.SourceCodeAfter);
+        var sourceCodeNext = sourceCodeBuilderNext.ToString();
+        var sourceTextNext = SourceText.From(sourceCodeNext);
         var documentNext = document.WithText(sourceTextNext);
         /*
         if (documentNext.SupportsSyntaxTree) {
@@ -338,3 +381,11 @@ public class MacroCodeFixProvider : CodeFixProvider {
 
 #endif
 }
+
+public record MacroUpdateRegionPreparation(
+    string SourceCodeBefore,
+    string PrevMacroRegionContent,
+    string Macro,
+    string StringIndent,
+    string SourceCodeAfter
+    );
