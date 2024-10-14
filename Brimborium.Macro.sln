@@ -5,16 +5,17 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Macro.Analyzers", "Brimborium.Macro.Analyzers\Brimborium.Macro.Analyzers.csproj", "{BC7D30FB-8A8E-4EBC-B986-DB2E5B688B9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Macro.Sample", "Brimborium.Macro.Sample\Brimborium.Macro.Sample.csproj", "{6F695792-94F9-4850-B4DF-C8E06D0FC3D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Macro.Sample", "Brimborium.Macro.Sample\Brimborium.Macro.Sample.csproj", "{6F695792-94F9-4850-B4DF-C8E06D0FC3D7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F3E5085C-A66E-4598-9C4E-ACBE39FAD5AB}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Macro.CodeFixes", "Brimborium.Macro.CodeFixes\Brimborium.Macro.CodeFixes.csproj", "{ECE36C1E-33AF-4750-98E2-5FD4E9D8A359}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Macro.UnitTests", "Brimborium.Macro.UnitTests\Brimborium.Macro.UnitTests.csproj", "{1E27F751-8A08-4B70-85FF-3B7B043BBF23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Macro.UnitTests", "Brimborium.Macro.UnitTests\Brimborium.Macro.UnitTests.csproj", "{1E27F751-8A08-4B70-85FF-3B7B043BBF23}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

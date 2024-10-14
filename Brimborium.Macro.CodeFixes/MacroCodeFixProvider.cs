@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
+using System.Text;
+using System.Collections;
 
 namespace Brimborium.Macro;
 
@@ -31,122 +33,222 @@ public class MacroCodeFixProvider : CodeFixProvider {
     }
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context) {
-        var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        if (syntaxRoot is null) { return; }
+        if (context.Document.TryGetSyntaxRoot(out var syntaxRoot)) {
+            //
+        } else {
+            syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            if (syntaxRoot is null) {
+                return;
+            }
+        }
 
         var diagnostic = context.Diagnostics.First();
-        var diagnosticSpan = diagnostic.Location.SourceSpan;
+        var diagnosticLocation = diagnostic.Location;
+        var diagnosticSpan = diagnosticLocation.SourceSpan;
+        var diagnosticToken = syntaxRoot.FindToken(diagnosticSpan.Start, findInsideTrivia: true);
 
-        var token = syntaxRoot.FindToken(diagnosticSpan.Start, findInsideTrivia: true);
+        RegisterCodeFixes(context, diagnostic, syntaxRoot, diagnosticToken);
+    }
 
-        //var regionDirectiveTriviaSyntax = token.AncestorsAndSelf.OfType<RegionDirectiveTriviaSyntax>().FirstOrDefault();
-        var regionDirectiveTriviaSyntax = token.Parent?.AncestorsAndSelf().OfType<RegionDirectiveTriviaSyntax>().FirstOrDefault();
-        if (regionDirectiveTriviaSyntax is null) { return; }
+    private void RegisterCodeFixes(CodeFixContext context, Diagnostic diagnostic, SyntaxNode syntaxRoot, SyntaxToken diagnosticToken) {
+        var diagnosticLocation = diagnostic.Location;
 
-        //var regionDirectiveTriviaSyntax = token.AncestorsAndSelf().OfType<RegionDirectiveTriviaSyntax>().FirstOrDefault();
+        if (diagnosticToken.Parent?.AncestorsAndSelf() is { } listAncestors) {
+            foreach (var node in listAncestors) {
+                if (node is RegionDirectiveTriviaSyntax nodeRegionDirectiveTriviaSyntax) {
+                    if (diagnosticLocation == nodeRegionDirectiveTriviaSyntax.GetLocation()) {
+                        // Register a code action that will invoke the fix.
+                        context.RegisterCodeFix(
+                            CodeAction.Create(
+                                title: CodeFixesResources.CodeFixTitle,
+                                createChangedDocument: c => MacroRunAsync(context.Document, diagnosticLocation, c),
+                                equivalenceKey: nameof(CodeFixesResources.CodeFixTitle)),
+                            diagnostic);
+                        return;
+                    }
+                }
+            }
 
-        // Register a code action that will invoke the fix.
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                title: CodeFixesResources.CodeFixTitle,
-                createChangedDocument: c => MacroRunAsync(context.Document, regionDirectiveTriviaSyntax, c),
-                equivalenceKey: nameof(CodeFixesResources.CodeFixTitle)),
-            diagnostic);
+            var fullText = syntaxRoot.SyntaxTree.GetText().ToString() ?? string.Empty;
+            foreach (var node in listAncestors) {
+                foreach (var trivia in node.GetLeadingTrivia()) {
+                    if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)) {
+                        if (diagnosticLocation == trivia.GetLocation()) {
+                            ReadOnlySpan<char> commentText = fullText.AsSpan(trivia.FullSpan.Start, trivia.FullSpan.Length);
+                            if (1 == MacroParser.TryGetMultiLineComment(commentText, out var _)) {
+                                context.RegisterCodeFix(
+                                    CodeAction.Create(
+                                        title: CodeFixesResources.CodeFixTitle,
+                                        createChangedDocument: c => MacroRunAsync(context.Document, diagnosticLocation, c),
+                                        equivalenceKey: nameof(CodeFixesResources.CodeFixTitle)),
+                                    diagnostic);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static async Task<Document> MacroRunAsync(
         Document document,
-        RegionDirectiveTriviaSyntax regionDirectiveTriviaSyntax,
+        Location location,
         CancellationToken cancellationToken) {
+        //if (document.TryGetSyntaxRoot(out var syntaxRoot)) {
+        //    //
+        //} else {
+        //    syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        //    if (syntaxRoot is null) {
+        //        return document;
+        //    }
+        //}
 
-        Stack<DirectiveBlock> stackDirectiveBlocks = new();
-        var currentDirectiveBlock = new DirectiveBlock() { StartSyntax = regionDirectiveTriviaSyntax };
-        stackDirectiveBlocks.Push(currentDirectiveBlock);
-        DirectiveTriviaSyntax currentDirectiveTriviaSyntax = regionDirectiveTriviaSyntax;
-
-        while (true) {
-            var nextDirectiveTriviaSyntax = currentDirectiveTriviaSyntax.GetNextDirective((directiveTriviaSyntax) => directiveTriviaSyntax is RegionDirectiveTriviaSyntax or EndRegionDirectiveTriviaSyntax);
-            if (nextDirectiveTriviaSyntax is null) {
-                break;
-            }
-            currentDirectiveTriviaSyntax = nextDirectiveTriviaSyntax;
-            if (currentDirectiveTriviaSyntax is RegionDirectiveTriviaSyntax start) {
-                var nextDirectiveBlock = new DirectiveBlock() { StartSyntax = start };
-                stackDirectiveBlocks.Push(nextDirectiveBlock);
-                currentDirectiveBlock.Children.Add(nextDirectiveBlock);
-                currentDirectiveBlock = nextDirectiveBlock;
-            }
-            if (currentDirectiveTriviaSyntax is EndRegionDirectiveTriviaSyntax end) {
-                currentDirectiveBlock.EndSyntax = end;
-                currentDirectiveBlock = stackDirectiveBlocks.Pop();
-                if (stackDirectiveBlocks.Count == 0) {
-                    break;
-                }
-                currentDirectiveBlock = stackDirectiveBlocks.Peek();
+        if (document.TryGetSyntaxTree(out var syntaxTree)) {
+            //
+        } else {
+            syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxTree is null) {
+                return document;
             }
         }
-        bool addEndRegion = (stackDirectiveBlocks.Count > 0);
 
-        var regionName = regionDirectiveTriviaSyntax.EndOfDirectiveToken.ToFullString();
-        if (!regionName.StartsWith("macro ", StringComparison.OrdinalIgnoreCase)) { return document; }
-        var macro = regionName.Substring(6).Trim();
+        var macroParseRegionsResults = MacroParseRegions.ParseRegions(syntaxTree, location, cancellationToken);
+        if (macroParseRegionsResults.Error is { }) { return document; }
+        if (macroParseRegionsResults.RegionBlockAtLocation is not { } regionBlock) { return document; }
+        var documentNext = await UpdateMacroRegionAsync(document, macroParseRegionsResults, regionBlock, cancellationToken);
+        return documentNext;
+    }
 
+    private static async Task<Document> UpdateMacroRegionAsync(
+        Document document,
+        MacroParseRegionsResult macroParseRegionsResults,
+        RegionBlock regionBlock,
+        CancellationToken cancellationToken) {
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var sourceString = sourceText.ToString();
 
-        var startOfStartSyntax = currentDirectiveBlock.StartSyntax.SpanStart;
-        var startOfStartLine = startOfStartSyntax;
-        while (0 < startOfStartLine) {
-            if (sourceString[startOfStartLine - 1] == '\n'
-                || sourceString[startOfStartLine - 1] == '\r') { break; }
-            startOfStartLine--;
-        }
-        var stringIndent = sourceString.Substring(startOfStartLine, startOfStartSyntax - startOfStartLine);
-        int endOfStartSyntax = currentDirectiveBlock.StartSyntax.EndOfDirectiveToken.FullSpan.End;
-        if (sourceString[endOfStartSyntax] == '\r') {
-            endOfStartSyntax++;
-        }
-        if (sourceString[endOfStartSyntax] == '\n') {
-            endOfStartSyntax++;
-        }
-        var stringBefore = sourceString.Substring(0, endOfStartSyntax);
+        regionBlock.Start.Deconstruct(out var regionStartText, out var regionStartKind, out var regionStartSyntaxTrivia, out var regionStartRegionDirective, out var location);
+        if ((regionStartKind == ParserNodeOrTriviaKind.None)
+            || (regionStartRegionDirective is null && regionStartSyntaxTrivia.IsKind(SyntaxKind.None))
+            || (location is null)
+            ) { return document; }
 
-        int startOfEndSyntax;
-        if (currentDirectiveBlock.EndSyntax is { } endSyntax) {
-            startOfEndSyntax = endSyntax.FullSpan.Start;
-            while (0 < startOfEndSyntax
-                && !(sourceString[startOfEndSyntax - 1] == '\r'
-                   || sourceString[startOfEndSyntax - 1] == '\n')
-                ) {
-                startOfEndSyntax--;
+        regionBlock.End.Deconstruct(out var regionEndText, out var regionEndKind, out var regionEndSyntaxTrivia, out var regionEndRegionDirective, out var regionEndLocation);
+        if ((regionEndKind == ParserNodeOrTriviaKind.None)
+            || (regionEndRegionDirective is null && regionEndSyntaxTrivia.IsKind(SyntaxKind.None))
+            || (location is null)
+            ) { return document; }
+
+        TextSpan regionBlockStartSourceSpan;
+        int endOfRegionStart;
+        int startOfRegionEnd;
+        int startOfMacroContent;
+        int endOfMacroContent;
+        if (regionStartRegionDirective is { }) {
+            regionBlockStartSourceSpan = regionStartRegionDirective.FullSpan;
+            endOfRegionStart = regionBlockStartSourceSpan.End;
+
+            startOfMacroContent = endOfRegionStart;
+            if (sourceString[startOfMacroContent] == '\r') {
+                startOfMacroContent++;
+            }
+            if (sourceString[startOfMacroContent] == '\n') {
+                startOfMacroContent++;
             }
         } else {
-            startOfEndSyntax = endOfStartSyntax;
-            addEndRegion = true;
+            regionBlockStartSourceSpan = regionStartSyntaxTrivia.FullSpan;
+            endOfRegionStart = regionBlockStartSourceSpan.End;
+
+            startOfMacroContent = endOfRegionStart;
+            if (sourceString[startOfMacroContent] == '\r') {
+                startOfMacroContent++;
+            }
+            if (sourceString[startOfMacroContent] == '\n') {
+                startOfMacroContent++;
+            }
         }
-        var stringAfter = sourceString.Substring(startOfEndSyntax);
+
+        if (regionBlock.End.Kind != ParserNodeOrTriviaKind.None) {
+            TextSpan regionBlockEndSourceSpan;
+            if (regionEndRegionDirective is { }) {
+                regionBlockEndSourceSpan = regionEndRegionDirective.FullSpan;
+                startOfRegionEnd = regionBlockEndSourceSpan.Start; // "#endregion\r\n    }\r\n}"
+                startOfRegionEnd = MacroParser.GotoLeftWhileWhitespace(sourceString, startOfRegionEnd);
+
+                endOfMacroContent = MacroParser.GotoLeftIfNewline(sourceString, startOfRegionEnd);
+                endOfMacroContent = MacroParser.GotoLeftWhileWhitespace(sourceString, endOfMacroContent);
+            } else {
+                regionBlockEndSourceSpan = regionEndSyntaxTrivia.FullSpan;
+                startOfRegionEnd = regionBlockEndSourceSpan.Start;
+
+                startOfRegionEnd = MacroParser.GotoLeftWhileWhitespace(sourceString, startOfRegionEnd);
+                endOfMacroContent = startOfRegionEnd;
+
+                endOfMacroContent = MacroParser.GotoLeftIfNewline(sourceString, endOfMacroContent);
+                endOfMacroContent = MacroParser.GotoLeftWhileWhitespace(sourceString, endOfMacroContent);
+            }
+        } else {
+            return document;
+        }
+
+        //while (0 < startOfStartLine) {
+        //    if (sourceString[startOfStartLine - 1] == '\n'
+        //        || sourceString[startOfStartLine - 1] == '\r') { break; }
+        //    startOfStartLine--;
+        //}
+        //var stringIndent = sourceString.Substring(startOfStartLine, startOfStartSyntax - startOfStartLine);
+
+        System.Diagnostics.Debug.Assert(endOfRegionStart <= startOfMacroContent);
+        System.Diagnostics.Debug.Assert(startOfMacroContent <= endOfMacroContent);
+        System.Diagnostics.Debug.Assert(endOfMacroContent <= startOfRegionEnd);
+
+        var stringIndent = "        ";
+        var stringBefore = sourceString[..endOfRegionStart];
+        var stringOldMacroContent = sourceString[startOfMacroContent..endOfMacroContent];
+        var stringAfter = sourceString[startOfRegionEnd..];
 
         var filePath = document.FilePath;
         var folders = document.Folders;
+        var stringPrevMacroContent = regionStartText;
+        if (stringPrevMacroContent is null || stringPrevMacroContent.Length == 0) { return document; }
+        string stringNextMacroContent = RunMacro(
+            stringPrevMacroContent,
+            stringIndent,
+            cancellationToken);
 
-        string replacement = RunMacro(macro, stringIndent, cancellationToken);
-        if (!(replacement.EndsWith("\r", StringComparison.Ordinal))
-            || (replacement.EndsWith("\n", StringComparison.Ordinal))) {
-            replacement += "\r\n";
+        if (MacroParser.EqualsLines(stringOldMacroContent, stringNextMacroContent)) {
+            return document;
         }
 
-        var stringNext = stringBefore + replacement + stringAfter;
+        // build the new source
+        StringBuilder sbNext = new(sourceString.Length);
+        sbNext.Append(stringBefore);
+        if (MacroParser.NeedNewLine(stringBefore, stringNextMacroContent)) { sbNext.Append("\r\n"); }
+        sbNext.Append(stringNextMacroContent);
+        if (MacroParser.NeedNewLine(stringNextMacroContent, stringAfter)) { sbNext.Append("\r\n"); }
+        sbNext.Append(stringAfter);
+        var stringNext = sbNext.ToString();
         var sourceTextNext = SourceText.From(stringNext);
         var documentNext = document.WithText(sourceTextNext);
+        /*
+        if (documentNext.SupportsSyntaxTree) {
+            var treeNext = await documentNext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (treeNext is { }) {
+                return document.WithSyntaxRoot(treeNext.GetRoot());
+            }
+        }
+        */
         return documentNext;
     }
 
     private static string RunMacro(string macro, string stringIndent, CancellationToken cancellationToken) {
-        return $"{stringIndent}// Macro: {macro}";
+        return $"{stringIndent}// Macro: {macro} //";
     }
 
 
 #warning WEICHEI
+#if WEICHEI
     public async Task RegisterCodeFixesAsyncGone(CodeFixContext context) {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         if (root is null) { return; }
@@ -233,10 +335,6 @@ public class MacroCodeFixProvider : CodeFixProvider {
         // Return document with transformed tree.
         return document.WithSyntaxRoot(newRoot);
     }
-}
 
-public class DirectiveBlock {
-    public required RegionDirectiveTriviaSyntax StartSyntax { get; set; }
-    public List<DirectiveBlock> Children { get; } = new();
-    public EndRegionDirectiveTriviaSyntax? EndSyntax { get; set; }
+#endif
 }

@@ -64,3 +64,4 @@ May be ..
 - Specify regions that can be customized AND updated.
 - Spanning Macros over many regions.
 - Performance / Caching
+https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/tutorials/how-to-write-csharp-analyzer-code-fix

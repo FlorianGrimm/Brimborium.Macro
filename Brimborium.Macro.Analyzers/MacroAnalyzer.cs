@@ -1,16 +1,18 @@
 ﻿#pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable IDE0057
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 using System.Collections.Immutable;
 
 namespace Brimborium.Macro;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class MacroAnalyzer : DiagnosticAnalyzer
+public sealed class MacroAnalyzer : DiagnosticAnalyzer
 {
     public const string RunDiagnosticId = "Macro";
 
@@ -30,17 +32,30 @@ public class MacroAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         description: Description);
     private static ImmutableArray<DiagnosticDescriptor> _SupportedDiagnostics => ImmutableArray.Create<DiagnosticDescriptor>(MacroRunRule);
+ 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _SupportedDiagnostics;
+
 
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(AnalyzeRegionDirective, SyntaxKind.RegionDirectiveTrivia);
-        
-        // context.RegisterAdditionalFileAction(AnalyzeAdditionalFileAction);
+        context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+        // TODO: WEICHEI: context.RegisterSyntaxNodeAction(AnalyzeRegionDirective, SyntaxKind.RegionDirectiveTrivia);
     }
 
+
+    private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+    {
+        if (context.IsGeneratedCode) { return; }
+        // context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.Macro", out var macroValue);
+        foreach (var item in MacroParser.AnalyzeSyntaxTree(context.Tree)){
+            context.ReportDiagnostic(Diagnostic.Create(MacroRunRule, item.Location));
+            if (context.CancellationToken.IsCancellationRequested) { return; }
+        }
+    }
+
+#if WEICHEI
     private void AnalyzeRegionDirective(SyntaxNodeAnalysisContext context)
     {
         var regionDirective = (RegionDirectiveTriviaSyntax)context.Node;
@@ -49,30 +64,13 @@ public class MacroAnalyzer : DiagnosticAnalyzer
         if (regionName.StartsWith("macro ", StringComparison.OrdinalIgnoreCase))
         {
             context.ReportDiagnostic(Diagnostic.Create(MacroRunRule, regionDirective.GetLocation()));
-            // TODO: does not work
-            /*
-            if (regionDirective.Parent is null) { return; }
-            var childNodes = regionDirective.Parent.ChildNodes();
-
-            bool foundRegionDirective=false;
-            foreach(var node in childNodes){
-                if (!foundRegionDirective){
-                    if (ReferenceEquals(node, regionDirective)){
-                        foundRegionDirective=true;
-                    }
-                } else {
-                    if (node is EndRegionDirectiveTriviaSyntax){
-                        context.ReportDiagnostic(Diagnostic.Create(_Rule, regionDirective.GetLocation()));
-                    }
-                }
-            }
-            // TODO: macro + add endregion??
-            */
         }
-
     }
+#endif
 
-    // TODO: WEICHEI
+
+// TODO: WEICHEI old sample
+#if WEICHEI
     private void AnalyzeNode(SyntaxNodeAnalysisContext context)
     {
         var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
@@ -156,4 +154,5 @@ public class MacroAnalyzer : DiagnosticAnalyzer
 
         context.ReportDiagnostic(Diagnostic.Create(MacroRunRule, context.Node.GetLocation()));
     }
+#endif
 }
