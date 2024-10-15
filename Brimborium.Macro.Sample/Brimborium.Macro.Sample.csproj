@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,7 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Brimborium.Macro.Analyzers\Brimborium.Macro.Analyzers.csproj" >
+    <ProjectReference Include="..\Brimborium.Macro.Analyzer\Brimborium.Macro.Analyzer.csproj">
+       <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
+    <ProjectReference Include="..\Brimborium.Macro.CodeFixes\Brimborium.Macro.CodeFixes.csproj" >
        <OutputItemType>Analyzer</OutputItemType>
     </ProjectReference>
   </ItemGroup>
