@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>1591;1573;SYSLIB0051</NoWarn>
+    <TFxId>$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)'))</TFxId>
+    <DefineConstants Condition="'$(TFxId)'=='.NETFramework'">$(DefineConstants);FEATURE_APPDOMAINS</DefineConstants>
+    <DefineConstants Condition="'$(TFxId)'=='.NETCoreApp'">$(DefineConstants);FEATURE_ASSEMBLY_LOAD_CONTEXT</DefineConstants>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- limit to 6.0 so that the MSBuild task can load on .NET 6.0 -->
+    <PackageReference Include="System.CodeDom" Version="8.0.0" Condition="'$(TargetFramework)'!='net472'" />
+    <None Include="readme.md" Pack="true" PackagePath="\" />
+    <PackageReference Include="PolySharp" Version="1.14.1" Condition="'$(TargetFramework)'=='netstandard2.0;'" >
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Mono.TextTemplating.Tests" />
+  </ItemGroup>
+</Project>

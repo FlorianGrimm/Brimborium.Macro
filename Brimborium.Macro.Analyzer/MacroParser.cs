@@ -31,7 +31,7 @@ public static class MacroParser {
                         if (1 == MacroParser.TryGetMultiLineComment(commentText, out var macroText)) {
                             var location = trivia.GetLocation();
                             if (hsKnownLocation.Add(location)) {
-                                yield return new RegionStart(commentText.ToString(), trivia, location);
+                                yield return new RegionStart(macroText.ToString(), trivia, location);
                             }
                         }
 

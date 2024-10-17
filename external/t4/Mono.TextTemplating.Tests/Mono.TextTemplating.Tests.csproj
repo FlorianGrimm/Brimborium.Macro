@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <DefineConstants Condition="'$(TargetFramework)'=='net472'">$(DefineConstants);FEATURE_APPDOMAINS</DefineConstants>
+    <DefaultItemExcludes>$(DefaultItemExcludes);TestCases\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mono.TextTemplating\Mono.TextTemplating.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="TestCases\**\*.*" />
+  </ItemGroup>
+
+  <!-- download packages that contains dlls referenced by test tt files -->
+  <ItemGroup>
+    <PackageDownload Include="Microsoft.OpenApi" Version="[1.2.3]" />
+    <PackageDownload Include="Microsoft.OpenApi.Readers" Version="[1.2.3]" />
+    <PackageDownload Include="SharpYaml" Version="[1.6.5]" />
+  </ItemGroup>
+
+  <!-- write paths to downloaded packages into consts that tests can use -->
+  <Target Name="GeneratePackageDownloadPaths" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <_PackageDownloadConstsPathFile>$(IntermediateOutputPath)PackageDownloadPathConstants.cs</_PackageDownloadConstsPathFile>
+      <_NuGetPackageRootWithTrailingSlash>$([MSBuild]::EnsureTrailingSlash("$(NuGetPackageRoot)"))</_NuGetPackageRootWithTrailingSlash>
+    </PropertyGroup>
+    <ItemGroup>
+      <!-- temp vars to make escaping manageable -->
+      <_PackageDownloadWithVersion Include="@(PackageDownload)" Version="$([System.String]::Copy('%(Version)').Replace('[','').Replace(']',''))" />
+      <_PackageDownloadWithPath Include="@(_PackageDownloadWithVersion)" Path="$(_NuGetPackageRootWithTrailingSlash)$([System.String]::Copy('%(Identity)').ToLower())\%(Version)" />
+      <_PackageDownloadVars Include="@(_PackageDownloadWithPath)" VarName="$([System.String]::Copy('%(Identity)_%(Version)').Replace('.','_'))" EscapedValue="$([System.String]::Copy('%(Path)').Replace('\','\\'))" />
+      <_PackageDownloadPathConstLines Include="namespace $(ProjectName) {" />
+      <_PackageDownloadPathConstLines Include="sealed class PackagePath {" />
+      <_PackageDownloadPathConstLines Include="@(_PackageDownloadVars->'    public static TestDataPath %(VarName) =&gt; new(&quot;%(EscapedValue)&quot;);')" />
+      <_PackageDownloadPathConstLines Include="}}" />
+    </ItemGroup>
+
+    <WriteLinesToFile File="$(_PackageDownloadConstsPathFile)" Lines="@(_PackageDownloadPathConstLines)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <_PackageDownloadWithVersion Remove="@(_PackageDownloadWithVersion)" />
+      <_PackageDownloadWithPath Remove="@(_PackageDownloadWithPath)" />
+      <_PackageDownloadVars Remove="@(_PackageDownloadVars)" />
+      <_PackageDownloadPathConstLines Remove="@(_PackageDownloadPathConstLines)" />
+      <Compile Include="$(_PackageDownloadConstsPathFile)" />
+      <FileWrites Include="$(_PackageDownloadConstsPathFile)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

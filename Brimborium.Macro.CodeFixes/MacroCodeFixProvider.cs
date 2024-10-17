@@ -21,16 +21,16 @@ using System.Collections;
 
 namespace Brimborium.Macro;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(BrimboriumMacroCodeFixProvider)), Shared]
-public class BrimboriumMacroCodeFixProvider : CodeFixProvider {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds {
-        get { return ImmutableArray.Create(BrimboriumMacroAnalyzer.DiagnosticIdMacroRun); }
-    }
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MacroCodeFixProvider)), Shared]
+public class MacroCodeFixProvider : CodeFixProvider {
+    private static ImmutableArray<string> _FixableDiagnosticIds
+        = ImmutableArray.Create(
+            MacroAnalyzer.DiagnosticIdMacroRun);
 
-    public sealed override FixAllProvider GetFixAllProvider() {
-        // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
-        return WellKnownFixAllProviders.BatchFixer;
-    }
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => _FixableDiagnosticIds;
+
+    // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
+    public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context) {
         if (context.Document.TryGetSyntaxRoot(out var syntaxRoot)) {
@@ -41,13 +41,14 @@ public class BrimboriumMacroCodeFixProvider : CodeFixProvider {
                 return;
             }
         }
-        var diagnostic = context.Diagnostics.Where(diagnostic => diagnostic.Id == BrimboriumMacroAnalyzer.DiagnosticIdMacroRun).FirstOrDefault();
-        if (diagnostic is null) { return; }
-        var diagnosticLocation = diagnostic.Location;
-        var diagnosticSpan = diagnosticLocation.SourceSpan;
-        var diagnosticToken = syntaxRoot.FindToken(diagnosticSpan.Start, findInsideTrivia: true);
+        var diagnostic = context.Diagnostics.Where(diagnostic => diagnostic.Id == MacroAnalyzer.DiagnosticIdMacroRun).FirstOrDefault();
+        if (diagnostic is { }) {
+            var diagnosticLocation = diagnostic.Location;
+            var diagnosticSpan = diagnosticLocation.SourceSpan;
+            var diagnosticToken = syntaxRoot.FindToken(diagnosticSpan.Start, findInsideTrivia: true);
 
-        RegisterCodeFixesSync(context, diagnostic, syntaxRoot, diagnosticToken);
+            RegisterCodeFixesSync(context, diagnostic, syntaxRoot, diagnosticToken);
+        }
     }
 
     // sync
@@ -68,7 +69,7 @@ public class BrimboriumMacroCodeFixProvider : CodeFixProvider {
                                     CodeAction.Create(
                                         title: $"{CodeFixResources.CodeFixTitle} {macroTextString}",
                                         createChangedDocument: c => MacroRunAsync(context.Document, sourceSpan, c),
-                                        equivalenceKey: BrimboriumMacroAnalyzer.DiagnosticIdMacroRun
+                                        equivalenceKey: MacroAnalyzer.DiagnosticIdMacroRun
                                         //equivalenceKey: $"{nameof(CodeFixesResources.CodeFixTitle)}-{sourceSpan.Start}-{sourceSpan.End}"
                                         ),
                                     diagnostic);
@@ -92,7 +93,7 @@ public class BrimboriumMacroCodeFixProvider : CodeFixProvider {
                                     CodeAction.Create(
                                         title: $"{CodeFixResources.CodeFixTitle} {macroTextString}",
                                         createChangedDocument: c => MacroRunAsync(context.Document, sourceSpan, c),
-                                        equivalenceKey: BrimboriumMacroAnalyzer.DiagnosticIdMacroRun
+                                        equivalenceKey: MacroAnalyzer.DiagnosticIdMacroRun
                                         //equivalenceKey: $"{nameof(CodeFixesResources.CodeFixTitle)}-{sourceSpan.Start}-{sourceSpan.End}"
                                         ),
                                     diagnostic);

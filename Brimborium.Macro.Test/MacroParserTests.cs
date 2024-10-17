@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using System.Text;
+using Xunit;
 
 namespace Brimborium.Macro;
 

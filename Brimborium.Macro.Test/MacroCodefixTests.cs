@@ -10,7 +10,7 @@ using Xunit;
 
 using VerifyCS = Brimborium.Macro.CSharpCodeFixVerifier<
     Brimborium.Macro.MacroAnalyzer,
-    Brimborium.Macro.BrimboriumMacroCodeFixProvider>;
+    Brimborium.Macro.MacroCodeFixProvider>;
 
 namespace Brimborium.Macro;
 
@@ -31,7 +31,10 @@ internal class Program {
 
 
         DiagnosticResult expected0 =
-            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9);
+            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+            .WithLocation(5, 9)
+            .WithArguments("""{{ Print "Hello, World!" 10 }}""")
+            ;
 
         await VerifyCS.VerifyAnalyzerAsync(source, expected0);
 
@@ -78,7 +81,10 @@ internal class Program {
 
 
         DiagnosticResult expected0 =
-            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9);
+            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+            .WithLocation(5, 9)
+            .WithArguments("""{{ Print "Hello, World!" 10 }}""")
+            ;
 
         await VerifyCS.VerifyAnalyzerAsync(source, expected0);
 
@@ -129,10 +135,14 @@ internal class Program {
 
 
         DiagnosticResult expected0 =
-            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9);
+            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+            .WithLocation(5, 9)
+            .WithArguments("""{{ Print "Hello, World!" 10 }}""");
 
         DiagnosticResult expected1 =
-            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(9, 9);
+            VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+            .WithLocation(9, 9)
+            .WithArguments("""{{ Print "Hello, World!" 10 }}""");
 
 
         await VerifyCS.VerifyAnalyzerAsync(source, expected0, expected1);

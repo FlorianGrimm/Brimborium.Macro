@@ -107,20 +107,107 @@ public class MacroParseRegions {
 
         var rootNode = tree.GetRoot();
 
-        //List<SyntaxToken> listSyntaxToken = new(1024);
-        //foreach (var token in rootNode.DescendantTokens()) {
-        //    if (token.IsKind(SyntaxKind.RegionDirectiveTrivia)
-        //        || token.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
-        //        || token.IsKind(SyntaxKind.MultiLineCommentTrivia)
-        //        ) {
-        //        listSyntaxToken.Add(token);
-        //    }
-        //}
+#if true
+        List<SyntaxTrivia> listSyntaxTrivia = new(1024);
+        foreach (var syntaxTrivia in rootNode.DescendantTrivia(null, false)) {
+            if (syntaxTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+                || syntaxTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
+                || syntaxTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                ) {
+                listSyntaxTrivia.Add(syntaxTrivia);
+            }
+        }
 
-        //foreach (var syntaxToken in listSyntaxToken) {
-        //    var node = syntaxToken.Parent;
-        //    if (node is null) { continue; }
+        foreach (var trivia in listSyntaxTrivia) {
+            //var span = syntaxTrivia.Span;
+            //var token = tree.GetRoot().FindToken(span.Start, true);
+            var token = trivia.Token;
+            var node = token.Parent;
+            if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)) {
+                if (trivia.IsDirective) {
+                    var location = trivia.GetLocation();
+                    if (this._HsKnownLocation.Contains(location)) {
+                        continue;
+                    }
+                    var structure = (DirectiveTriviaSyntax)trivia.GetStructure()!;
+                    if (structure is RegionDirectiveTriviaSyntax regionDirective) {
+                        if (!regionDirective.EndOfDirectiveToken.IsMissing) {
+                            location = regionDirective.GetLocation();
+                            if (this._HsKnownLocation.Contains(location)) {
+                                continue;
+                            }
+                            var regionText = regionDirective.EndOfDirectiveToken.ToFullString().AsSpan();
+                            if (MacroParser.TryGetRegionBlockStart(regionText, out var macroText)) {
+                                if (this.addRegionStart(
+                                    new RegionStart(macroText.ToString(), regionDirective, location),
+                                    location)) {
+                                    continue;
+                                } else {
+                                    return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)) {
+                if (trivia.IsDirective) {
+                    var location = trivia.GetLocation();
+                    if (this._HsKnownLocation.Contains(location)) {
+                        continue;
+                    }
+                    var structure = (DirectiveTriviaSyntax)trivia.GetStructure()!;
+                    if (structure is EndRegionDirectiveTriviaSyntax endRegionDirective) {
+                        if (this._CurrentRegionBlock is null) {
+                        } else {
+                            location = endRegionDirective.GetLocation();
+                            if (this._HsKnownLocation.Contains(location)) {
+                                continue;
+                            }
+                            string regionText = (endRegionDirective.EndOfDirectiveToken.IsMissing)
+                                ? string.Empty
+                                : endRegionDirective.EndOfDirectiveToken.Text;
+                            if (MacroParser.TryGetRegionBlockEnd(regionText.AsSpan(), out var macroText)) {
+                                if (this.addRegionEnd(new RegionEnd(macroText.ToString(), endRegionDirective, location), location)) {
+                                    continue;
+                                } else {
+                                    return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)) {
+                var location = trivia.GetLocation();
+                if (this._HsKnownLocation.Contains(location)) {
+                    continue;
+                }
+                if (fullText is null) {
+                    fullText = tree.GetText().ToString() ?? string.Empty;
+                }
+                ReadOnlySpan<char> commentText = fullText.AsSpan(trivia.FullSpan.Start, trivia.FullSpan.Length);
 
+                switch (MacroParser.TryGetMultiLineComment(commentText, out var macroText)) {
+                    case 1: {
+                        if (this.addRegionStart(new RegionStart(macroText.ToString(), trivia, location), location)) {
+                            continue;
+                        } else {
+                            return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+                        }
+                    }
+                    case 2: {
+                        if (this.addRegionEnd(new RegionEnd(commentText.ToString(), trivia, location), location)) {
+                            continue;
+                        } else {
+                            return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+                        }
+                    }
+                    default: continue;
+                }
+            }
+        }
+#endif
+
+#if false
         foreach (var node in rootNode.DescendantNodesAndTokensAndSelf()) {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -208,6 +295,7 @@ public class MacroParseRegions {
                 }
             }
         }
+#endif
         if (this._CurrentRegionBlock is not null) {
             this.Error = "No EndRegionDirectiveTrivia";
         }

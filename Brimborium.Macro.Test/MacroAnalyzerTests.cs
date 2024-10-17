@@ -35,7 +35,9 @@ internal class Program {
         await (new VerifyCS.Test() {
             TestCode = source,
             ExpectedDiagnostics = {
-                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9),
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+                .WithLocation(5, 9)
+                .WithArguments("""{{ Print "Hello, World!" 10 }}"""),
             }
         }).RunAsync();
     }
@@ -56,7 +58,9 @@ internal class Program {
         await (new VerifyCS.Test() {
             TestCode = source,
             ExpectedDiagnostics = {
-                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9),
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+                .WithLocation(5, 9)
+                .WithArguments("""{{ Print "Hello, World!" 10 }}"""),
             }
         }).RunAsync();
     }
@@ -81,8 +85,12 @@ internal class Program {
         await (new VerifyCS.Test() {
             TestCode = source,
             ExpectedDiagnostics = {
-                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5, 9),
-                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(9, 9),
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+                    .WithLocation(5, 9)
+                    .WithArguments("""{{ Print "Hello, World!" 10 }}"""),
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+                    .WithLocation(9, 9)
+                    .WithArguments("""{{ Print "Hello, World!" 10 }}"""),
             }
         }).RunAsync();
     }
@@ -144,8 +152,14 @@ internal class Program {
         for (int index = 0; index < regionCount; index++) {
             sourceBuilder
                 .Append(sourceRegion1).Append(sourceRegion2);
-            listExpectedDiagnostics.Add(VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(5 + index * 8, 9));
-            listExpectedDiagnostics.Add(VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun).WithLocation(9 + index * 8, 9));
+            listExpectedDiagnostics.Add(
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+                    .WithLocation(5 + index * 8, 9)
+                    .WithArguments("""{{ Print "Hello, World!" 10 }}"""));
+            listExpectedDiagnostics.Add(
+                VerifyCS.Diagnostic(MacroAnalyzer.DiagnosticIdMacroRun)
+                    .WithLocation(9 + index * 8, 9)
+                    .WithArguments("""{{ Print "Hello, World!" 10 }}"""));
         }
         sourceBuilder.Append(sourceEnd);
 

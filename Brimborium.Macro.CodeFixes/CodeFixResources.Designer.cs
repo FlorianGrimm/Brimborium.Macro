@@ -61,7 +61,7 @@ namespace Brimborium.Macro {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make uppercase.
+        ///   Looks up a localized string similar to Run Macro.
         /// </summary>
         internal static string CodeFixTitle {
             get {
