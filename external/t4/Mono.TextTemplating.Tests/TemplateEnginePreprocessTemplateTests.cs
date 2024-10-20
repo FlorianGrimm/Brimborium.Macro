@@ -26,98 +26,91 @@
 
 using System;
 using System.CodeDom.Compiler;
+
 using Xunit;
 
-namespace Mono.TextTemplating.Tests
-{
-	public class TemplateEnginePreprocessTemplateTests
-	{
-		[Fact]
-		public void PreprocessSimple ()
-		{
-			string input =
-				"<#@ template language=\"C#\" #>\r\n" +
-				"Test\r\n";
+namespace Mono.TextTemplating.Tests;
 
-			string expectedOutput = TemplatingEngineHelper.CleanCodeDom (OutputSample1, "\n");
-			string output = Preprocess (input);
+public class TemplateEnginePreprocessTemplateTests {
+    [Fact]
+    public void PreprocessSimple() {
+        string input =
+            "<#@ template language=\"C#\" #>\r\n" +
+            "Test\r\n";
 
-			Assert.Equal (expectedOutput, output);
-		}
+        string expectedOutput = TemplatingEngineHelper.CleanCodeDom(OutputSample1, "\n");
+        string output = Preprocess(input);
 
-		[Fact]
-		public void ControlBlockAfterIncludedTemplateWithClassFeatureBlock ()
-		{
-			string input = InputTemplate_ControlBlockAfterIncludedTemplateWithClassFeatureBlock.NormalizeNewlines ();
-			DummyHost host = CreateDummyHostForControlBlockAfterIncludedTemplateWithClassFeatureBlockTest ();
-			host.HostOptions.Add ("UseRelativeLinePragmas", true);
+        Assert.Equal(expectedOutput, output);
+    }
 
-			string expectedOutput = TemplatingEngineHelper.CleanCodeDom (Output_ControlBlockAfterIncludedTemplateWithClassFeatureBlock.NormalizeNewlines (), "\n");
-			string output = Preprocess (input, host);
+    [Fact]
+    public void ControlBlockAfterIncludedTemplateWithClassFeatureBlock() {
+        string input = InputTemplate_ControlBlockAfterIncludedTemplateWithClassFeatureBlock.NormalizeNewlines();
+        DummyHost host = CreateDummyHostForControlBlockAfterIncludedTemplateWithClassFeatureBlockTest();
+        host.HostOptions.Add("UseRelativeLinePragmas", true);
 
-			Assert.Equal (expectedOutput, output);
-		}
+        string expectedOutput = TemplatingEngineHelper.CleanCodeDom(Output_ControlBlockAfterIncludedTemplateWithClassFeatureBlock.NormalizeNewlines(), "\n");
+        string output = Preprocess(input, host);
 
-		[Fact]
-		public void CaptureEncodingAndExtension ()
-		{
-			string input = InputTemplate_CaptureEncodingAndExtension.NormalizeNewlines ();
-			string output = Preprocess (input);
-			string expectedOutput = TemplatingEngineHelper.CleanCodeDom (Output_CaptureEncodingAndExtension.NormalizeNewlines (), "\n");
+        Assert.Equal(expectedOutput, output);
+    }
 
-			Assert.Equal (expectedOutput, output);
-		}
+    [Fact]
+    public void CaptureEncodingAndExtension() {
+        string input = InputTemplate_CaptureEncodingAndExtension.NormalizeNewlines();
+        string output = Preprocess(input);
+        string expectedOutput = TemplatingEngineHelper.CleanCodeDom(Output_CaptureEncodingAndExtension.NormalizeNewlines(), "\n");
 
-		#region Helpers
+        Assert.Equal(expectedOutput, output);
+    }
 
-		static string Preprocess (string input)
-		{
-			var host = new DummyHost ();
-			return Preprocess (input, host);
-		}
+    #region Helpers
 
-		static string Preprocess (string input, DummyHost host)
-		{
-			string className = "PreprocessedTemplate";
-			string classNamespace = "Templating";
+    static string Preprocess(string input) {
+        var host = new DummyHost();
+        return Preprocess(input, host);
+    }
 
-			var engine = new TemplatingEngine ();
-			string output = engine.PreprocessTemplate (input, host, className, classNamespace, out _, out _);
-			ReportErrors (host.Errors);
-			if (output != null) {
-				return TemplatingEngineHelper.CleanCodeDom (output, "\n");
-			}
-			return null;
-		}
+    static string Preprocess(string input, DummyHost host) {
+        string className = "PreprocessedTemplate";
+        string classNamespace = "Templating";
 
-		static void ReportErrors(CompilerErrorCollection errors)
-		{
-			foreach (CompilerError error in errors) {
-				Console.WriteLine(error.ErrorText);
-			}
-		}
+        var engine = new T4TemplatingEngine();
+        string output = engine.PreprocessTemplate(input, host, className, classNamespace, out _, out _);
+        ReportErrors(host.Errors);
+        if (output != null) {
+            return TemplatingEngineHelper.CleanCodeDom(output, "\n");
+        }
+        return null;
+    }
 
-		static DummyHost CreateDummyHostForControlBlockAfterIncludedTemplateWithClassFeatureBlockTest ()
-		{
-			var host = new DummyHost ();
+    static void ReportErrors(CompilerErrorCollection errors) {
+        foreach (CompilerError error in errors) {
+            Console.WriteLine(error.ErrorText);
+        }
+    }
 
-			string includeTemplateRequestedFileName = @"Some\Requested\Path\IncludedFile.tt";
-			if (System.IO.Path.DirectorySeparatorChar == '/') {
-				includeTemplateRequestedFileName = includeTemplateRequestedFileName.Replace('\\', '/');
-			}
+    static DummyHost CreateDummyHostForControlBlockAfterIncludedTemplateWithClassFeatureBlockTest() {
+        var host = new DummyHost();
 
-			string includeTemplateResolvedFileName = @"Some\Resolved\Path\IncludedFile.tt";
-			host.Locations.Add (includeTemplateRequestedFileName, includeTemplateResolvedFileName);
-			host.Contents.Add (includeTemplateResolvedFileName, IncludedTemplate_ControlBlockAfterIncludedTemplate.NormalizeNewlines ());
+        string includeTemplateRequestedFileName = @"Some\Requested\Path\IncludedFile.tt";
+        if (System.IO.Path.DirectorySeparatorChar == '/') {
+            includeTemplateRequestedFileName = includeTemplateRequestedFileName.Replace('\\', '/');
+        }
 
-			return host;
-		}
+        string includeTemplateResolvedFileName = @"Some\Resolved\Path\IncludedFile.tt";
+        host.Locations.Add(includeTemplateRequestedFileName, includeTemplateResolvedFileName);
+        host.Contents.Add(includeTemplateResolvedFileName, IncludedTemplate_ControlBlockAfterIncludedTemplate.NormalizeNewlines());
 
-		#endregion
+        return host;
+    }
 
-		#region Input templates
+    #endregion
 
-		const string InputTemplate_ControlBlockAfterIncludedTemplateWithClassFeatureBlock =
+    #region Input templates
+
+    const string InputTemplate_ControlBlockAfterIncludedTemplateWithClassFeatureBlock =
 @"
 <#@ template debug=""false"" language=""C#"" #>
 <#@ output extension="".cs"" #>
@@ -138,7 +131,7 @@ Text Block 3
 #>
 ";
 
-		const string IncludedTemplate_ControlBlockAfterIncludedTemplate =
+    const string IncludedTemplate_ControlBlockAfterIncludedTemplate =
 @"
 <#@ template debug=""false"" language=""C#"" #>
 <#@ output extension="".cs"" #>
@@ -155,17 +148,17 @@ Included Method Body Text Block
 #>
 ";
 
-		const string InputTemplate_CaptureEncodingAndExtension =
-			@"
+    const string InputTemplate_CaptureEncodingAndExtension =
+        @"
 <#@ template debug=""false"" language=""C#"" inherits=""Foo"" hostspecific=""trueFromBase"" #>
 <#@ output extension="".cs"" encoding=""utf-8"" #>
 ";
 
-		#endregion
+    #endregion
 
-		#region Expected output strings
+    #region Expected output strings
 
-		const string OutputSample1 =
+    const string OutputSample1 =
 @"
 namespace Templating {
     
@@ -339,7 +332,7 @@ namespace Templating {
 }
 ";
 
-		const string Output_ControlBlockAfterIncludedTemplateWithClassFeatureBlock =
+    const string Output_ControlBlockAfterIncludedTemplateWithClassFeatureBlock =
 @"
 namespace Templating {
     
@@ -604,9 +597,9 @@ namespace Templating {
 }
 ";
 
-		const string Output_CaptureEncodingAndExtension =
+    const string Output_CaptureEncodingAndExtension =
 
-		@"namespace Templating {
+    @"namespace Templating {
     
     
     public partial class PreprocessedTemplate : Foo {
@@ -631,6 +624,5 @@ namespace Templating {
         }
     }
 }";
-		#endregion
-	}
+    #endregion
 }

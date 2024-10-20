@@ -7,21 +7,21 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Mono.TextTemplating;
 
-internal sealed class RoslynCodeCompiler : Mono.TextTemplating.CodeCompilation.CodeCompiler {
-    private readonly RuntimeInfo runtime;
+internal sealed class RoslynCodeCompiler : Mono.TextTemplating.CodeCompilation.T4CodeCompiler {
+    private readonly T4RuntimeInfo runtime;
 
-    public RoslynCodeCompiler(RuntimeInfo runtime) {
+    public RoslynCodeCompiler(T4RuntimeInfo runtime) {
         this.runtime = runtime;
     }
 
-    public override Task<CodeCompilerResult> CompileFile(
-        CodeCompilerArguments arguments,
+    public override Task<T4CodeCompilerResult> CompileFile(
+        T4CodeCompilerArguments arguments,
         TextWriter log,
         CancellationToken token)
         => Task.FromResult(this.CompileFileInternal(arguments, token));
 
-    private CodeCompilerResult CompileFileInternal(
-            CodeCompilerArguments arguments,
+    private T4CodeCompilerResult CompileFileInternal(
+            T4CodeCompilerArguments arguments,
             CancellationToken token) {
         CSharpCommandLineArguments args = null;
         bool hasLangVersionArg = false;
@@ -30,11 +30,11 @@ internal sealed class RoslynCodeCompiler : Mono.TextTemplating.CodeCompilation.C
             if (splitArgs.Any()) {
                 args = CSharpCommandLineParser.Default.Parse(splitArgs, arguments.TempDirectory, null, null);
             }
-            hasLangVersionArg = splitArgs.Any(CSharpLangVersionHelper.IsLangVersionArg);
+            hasLangVersionArg = splitArgs.Any(T4CSharpLangVersionHelper.IsLangVersionArg);
         }
 
         var references = new List<MetadataReference>();
-        foreach (var assemblyReference in AssemblyResolver.GetResolvedReferences(this.runtime, arguments.AssemblyReferences)) {
+        foreach (var assemblyReference in T4AssemblyResolver.GetResolvedReferences(this.runtime, arguments.AssemblyReferences)) {
             references.Add(MetadataReference.CreateFromFile(assemblyReference));
         }
 
@@ -57,7 +57,7 @@ internal sealed class RoslynCodeCompiler : Mono.TextTemplating.CodeCompilation.C
             // features depend on new APIs that aren't available on the current runtime.
             // If the runtime is an unknown version, its MaxSupportedLangVersion will default
             // to "latest" so new runtime versions will work before we explicitly add support for them.
-            if (LanguageVersionFacts.TryParse(CSharpLangVersionHelper.ToString(this.runtime.RuntimeLangVersion), out var runtimeSupportedLangVersion)) {
+            if (LanguageVersionFacts.TryParse(T4CSharpLangVersionHelper.ToString(this.runtime.RuntimeLangVersion), out var runtimeSupportedLangVersion)) {
                 parseOptions = parseOptions.WithLanguageVersion(runtimeSupportedLangVersion);
             } else {
                 // if Roslyn did not recognize the runtime's default lang version, it's newer than
@@ -93,7 +93,7 @@ internal sealed class RoslynCodeCompiler : Mono.TextTemplating.CodeCompilation.C
         EmitResult result = compilation.Emit(fs, options: emitOptions, cancellationToken: token);
 
         if (result.Success) {
-            return new CodeCompilerResult {
+            return new T4CodeCompilerResult {
                 Output = new List<string>(),
                 Success = true,
                 Errors = new List<CodeCompilerError>()
@@ -116,7 +116,7 @@ internal sealed class RoslynCodeCompiler : Mono.TextTemplating.CodeCompilation.C
             };
         }).ToList();
 
-        return new CodeCompilerResult {
+        return new T4CodeCompilerResult {
             Success = false,
             Output = new List<string>(),
             Errors = errors

@@ -34,94 +34,87 @@ using Microsoft.VisualStudio.TextTemplating;
 
 using Xunit;
 
-namespace Mono.TextTemplating.Tests
-{
-	public class GenerationTests
-	{
-		[Fact]
-		public void Generate ()
-		{
-			string Input = ParsingTests.ParseSample1.NormalizeNewlines ();
-			string Output = OutputSample1.NormalizeEscapedNewlines ();
-			GenerateOutput (Input, Output, "\n");
-		}
+namespace Mono.TextTemplating.Tests;
 
-		[Fact]
-		public void GenerateMacNewlines ()
-		{
-			string MacInput = ParsingTests.ParseSample1.NormalizeNewlines ("\r");
-			string MacOutput = OutputSample1.NormalizeEscapedNewlines ("\\r");
-			GenerateOutput (MacInput, MacOutput, "\r");
-		}
+public class GenerationTests {
+    [Fact]
+    public void Generate() {
+        string Input = ParsingTests.ParseSample1.NormalizeNewlines();
+        string Output = OutputSample1.NormalizeEscapedNewlines();
+        GenerateOutput(Input, Output, "\n");
+    }
 
-		[Fact]
-		public void GenerateWindowsNewlines ()
-		{
-			string WinInput = ParsingTests.ParseSample1.NormalizeNewlines ("\r\n");
-			string WinOutput = OutputSample1.NormalizeEscapedNewlines ("\\r\\n");
-			GenerateOutput (WinInput, WinOutput, "\r\n");
-		}
+    [Fact]
+    public void GenerateMacNewlines() {
+        string MacInput = ParsingTests.ParseSample1.NormalizeNewlines("\r");
+        string MacOutput = OutputSample1.NormalizeEscapedNewlines("\\r");
+        GenerateOutput(MacInput, MacOutput, "\r");
+    }
 
-		[Fact]
-		public void DefaultLanguage ()
-		{
-			var host = new DummyHost ();
-			string template = @"<#= DateTime.Now #>";
-			var pt = ParsedTemplate.FromTextInternal (template, host);
-			Assert.Empty (host.Errors);
-			TemplateSettings settings = TemplatingEngine.GetSettings (host, pt);
-			Assert.Equal ("C#", settings.Language);
-		}
+    [Fact]
+    public void GenerateWindowsNewlines() {
+        string WinInput = ParsingTests.ParseSample1.NormalizeNewlines("\r\n");
+        string WinOutput = OutputSample1.NormalizeEscapedNewlines("\\r\\n");
+        GenerateOutput(WinInput, WinOutput, "\r\n");
+    }
 
-		//NOTE: we set the newline property on the code generator so that the whole files has matching newlines,
-		// in order to match the newlines in the verbatim code blocks
-		static void GenerateOutput (string input, string expectedOutput, string newline)
-		{
-			var host = new DummyHost ();
-			string nameSpaceName = "Microsoft.VisualStudio.TextTemplating4f504ca0";
-			string code = GenerateCode (host, input, nameSpaceName, newline);
-			Assert.Empty (host.Errors);
+    [Fact]
+    public void DefaultLanguage() {
+        var host = new DummyHost();
+        string template = @"<#= DateTime.Now #>";
+        var pt = T4ParsedTemplate.FromTextInternal(template, host);
+        Assert.Empty(host.Errors);
+        T4TemplateSettings settings = T4TemplatingEngine.GetSettings(host, pt);
+        Assert.Equal("C#", settings.Language);
+    }
 
-			var generated = TemplatingEngineHelper.CleanCodeDom (code, newline);
-			expectedOutput = TemplatingEngineHelper.CleanCodeDom (expectedOutput, newline);
-			Assert.Equal (expectedOutput, generated);
-		}
+    //NOTE: we set the newline property on the code generator so that the whole files has matching newlines,
+    // in order to match the newlines in the verbatim code blocks
+    static void GenerateOutput(string input, string expectedOutput, string newline) {
+        var host = new DummyHost();
+        string nameSpaceName = "Microsoft.VisualStudio.TextTemplating4f504ca0";
+        string code = GenerateCode(host, input, nameSpaceName, newline);
+        Assert.Empty(host.Errors);
 
-		#region Helpers
+        var generated = TemplatingEngineHelper.CleanCodeDom(code, newline);
+        expectedOutput = TemplatingEngineHelper.CleanCodeDom(expectedOutput, newline);
+        Assert.Equal(expectedOutput, generated);
+    }
 
-		static string GenerateCode (DummyHost host, string content, string name, string generatorNewline)
-		{
-			var pt = ParsedTemplate.FromTextInternal (content, host);
-			if (pt.Errors.HasErrors) {
-				host.LogErrors (pt.Errors);
-				return null;
-			}
+    #region Helpers
 
-			TemplateSettings settings = TemplatingEngine.GetSettings (host, pt);
-			if (name != null)
-				settings.Namespace = name;
-			if (pt.Errors.HasErrors) {
-				host.LogErrors (pt.Errors);
-				return null;
-			}
+    static string GenerateCode(DummyHost host, string content, string name, string generatorNewline) {
+        var pt = T4ParsedTemplate.FromTextInternal(content, host);
+        if (pt.Errors.HasErrors) {
+            host.LogErrors(pt.Errors);
+            return null;
+        }
 
-			var ccu = TemplatingEngine.GenerateCompileUnit (host, content, pt, settings);
-			if (pt.Errors.HasErrors) {
-				host.LogErrors (pt.Errors);
-				return null;
-			}
+        T4TemplateSettings settings = T4TemplatingEngine.GetSettings(host, pt);
+        if (name != null)
+            settings.Namespace = name;
+        if (pt.Errors.HasErrors) {
+            host.LogErrors(pt.Errors);
+            return null;
+        }
 
-			var opts = new CodeGeneratorOptions ();
-			using var writer = new StringWriter () { NewLine = generatorNewline };
-			settings.Provider.GenerateCodeFromCompileUnit (ccu, writer, opts);
-			return writer.ToString ();
-		}
+        var ccu = T4TemplatingEngine.GenerateCompileUnit(host, content, pt, settings);
+        if (pt.Errors.HasErrors) {
+            host.LogErrors(pt.Errors);
+            return null;
+        }
 
-		#endregion
+        var opts = new CodeGeneratorOptions();
+        using var writer = new StringWriter() { NewLine = generatorNewline };
+        settings.Provider.GenerateCodeFromCompileUnit(ccu, writer, opts);
+        return writer.ToString();
+    }
 
-		#region Expected output strings
+    #endregion
 
-		public const string OutputSample1 =
+    #region Expected output strings
+
+    public const string OutputSample1 =
 @"
 namespace Microsoft.VisualStudio.TextTemplating4f504ca0 {
     
@@ -179,6 +172,5 @@ var foo = 5;
     }
 }
 ";
-		#endregion
-	}
+    #endregion
 }

@@ -35,7 +35,7 @@ using Mono.TextTemplating.CodeDomBuilder;
 
 namespace Microsoft.VisualStudio.TextTemplating;
 
-	public sealed class ParameterDirectiveProcessor : DirectiveProcessor, IRecognizeHostSpecific, ISupportCodeGenerationOptions
+	public sealed class ParameterDirectiveProcessor : DirectiveProcessor, IRecognizeHostSpecific, IT4SupportCodeGenerationOptions
 	{
     private CodeDomProvider provider;
     private bool hostSpecific;
@@ -230,12 +230,12 @@ namespace Microsoft.VisualStudio.TextTemplating;
 			this.hostSpecific = hostSpecific;
 		}
 
-		void ISupportCodeGenerationOptions.SetCodeGenerationOptions (CodeGenerationOptions options) => this.CodeGenerationOptions = options;
+		void IT4SupportCodeGenerationOptions.SetCodeGenerationOptions (T4CodeGenerationOptions options) => this.CodeGenerationOptions = options;
 
 		public bool RequiresProcessingRunIsHostSpecific {
 			get { return false; }
 		}
 
-    private CodeGenerationOptions CodeGenerationOptions { get; set; }
+    private T4CodeGenerationOptions CodeGenerationOptions { get; set; }
 	}
 
