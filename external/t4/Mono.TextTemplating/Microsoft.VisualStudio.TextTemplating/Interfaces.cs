@@ -34,74 +34,68 @@ using System.Text;
 
 namespace Microsoft.VisualStudio.TextTemplating;
 
-	public interface IRecognizeHostSpecific
-	{
-		void SetProcessingRunIsHostSpecific (bool hostSpecific);
-		bool RequiresProcessingRunIsHostSpecific { get; }
-	}
+public interface IRecognizeHostSpecific {
+    void SetProcessingRunIsHostSpecific(bool hostSpecific);
+    bool RequiresProcessingRunIsHostSpecific { get; }
+}
 
-	[Obsolete("Use Mono.TextTemplating.TemplatingEngine directly")]
-	public interface ITextTemplatingEngine
-	{
-		string ProcessTemplate (string content, ITextTemplatingEngineHost host);
-		string PreprocessTemplate (string content, ITextTemplatingEngineHost host, string className,
-			string classNamespace, out string language, out string [] references);
-	}
+[Obsolete("Use Mono.TextTemplating.TemplatingEngine directly")]
+public interface ITextTemplatingEngine {
+    string ProcessTemplate(string content, ITextTemplatingEngineHost host);
+    string PreprocessTemplate(string content, ITextTemplatingEngineHost host, string className,
+        string classNamespace, out string language, out string[] references);
+}
 
-	public interface ITextTemplatingEngineHost
-	{
-		object GetHostOption (string optionName);
-		bool LoadIncludeText (string requestFileName, out string content, out string location);
-		void LogErrors (CompilerErrorCollection errors);
+public interface ITextTemplatingEngineHost {
+    object GetHostOption(string optionName);
+    bool LoadIncludeText(string requestFileName, out string content, out string location);
+    void LogErrors(CompilerErrorCollection errors);
 
 #if !FEATURE_APPDOMAINS
-		[Obsolete ("AppDomains are only supported on .NET Framework. This method will not be called on newer versions of .NET.")]
+    [Obsolete("AppDomains are only supported on .NET Framework. This method will not be called on newer versions of .NET.")]
 #endif
 
-		AppDomain ProvideTemplatingAppDomain (string content);
+    AppDomain ProvideTemplatingAppDomain(string content);
 
-		string ResolveAssemblyReference (string assemblyReference);
-		Type ResolveDirectiveProcessor (string processorName);
-		string ResolveParameterValue (string directiveId, string processorName, string parameterName);
-		string ResolvePath (string path);
-		void SetFileExtension (string extension);
-		void SetOutputEncoding (Encoding encoding, bool fromOutputDirective);
-		IList<string> StandardAssemblyReferences { get; }
-		IList<string> StandardImports { get; }
-		string TemplateFile { get; }
-	}
+    string ResolveAssemblyReference(string assemblyReference);
+    Type ResolveDirectiveProcessor(string processorName);
+    string ResolveParameterValue(string directiveId, string processorName, string parameterName);
+    string ResolvePath(string path);
+    void SetFileExtension(string extension);
+    void SetOutputEncoding(Encoding encoding, bool fromOutputDirective);
+    IList<string> StandardAssemblyReferences { get; }
+    IList<string> StandardImports { get; }
+    string TemplateFile { get; }
+}
 
-	[System.Diagnostics.CodeAnalysis.SuppressMessage ("Naming", "CA1710:Identifiers should have correct suffix", Justification = "API compat with Microsoft.VisualStudio.TextTemplating.dll")]
-	public interface ITextTemplatingSession :
-		IEquatable<ITextTemplatingSession>, IEquatable<Guid>, IDictionary<string, object>,
-		ICollection<KeyValuePair<string, object>>,
-		IEnumerable<KeyValuePair<string, object>>,
-		IEnumerable, ISerializable
-	{
-		Guid Id { get; }
-	}
-	
-	public interface ITextTemplatingSessionHost	
-	{
-		ITextTemplatingSession CreateSession ();
-		ITextTemplatingSession Session { get; set; }
-	}
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "API compat with Microsoft.VisualStudio.TextTemplating.dll")]
+public interface ITextTemplatingSession :
+    IEquatable<ITextTemplatingSession>, IEquatable<Guid>, IDictionary<string, object>,
+    ICollection<KeyValuePair<string, object>>,
+    IEnumerable<KeyValuePair<string, object>>,
+    IEnumerable, ISerializable {
+    Guid Id { get; }
+}
 
-	public interface IDirectiveProcessor
-	{
-		CompilerErrorCollection Errors { get; }
-		bool RequiresProcessingRunIsHostSpecific { get; }
+public interface ITextTemplatingSessionHost {
+    ITextTemplatingSession CreateSession();
+    ITextTemplatingSession Session { get; set; }
+}
 
-		void FinishProcessingRun ();
-		string GetClassCodeForProcessingRun ();
-		string[] GetImportsForProcessingRun ();
-		string GetPostInitializationCodeForProcessingRun ();
-		string GetPreInitializationCodeForProcessingRun ();
-		string[] GetReferencesForProcessingRun ();
-		CodeAttributeDeclarationCollection GetTemplateClassCustomAttributes ();  //TODO
-		void Initialize (ITextTemplatingEngineHost host);
-		bool IsDirectiveSupported (string directiveName);
-		void ProcessDirective (string directiveName, IDictionary<string, string> arguments);
-		void SetProcessingRunIsHostSpecific (bool hostSpecific);
-		void StartProcessingRun (CodeDomProvider languageProvider, string templateContents, CompilerErrorCollection errors);
-	}
+public interface IDirectiveProcessor {
+    CompilerErrorCollection Errors { get; }
+    bool RequiresProcessingRunIsHostSpecific { get; }
+
+    void FinishProcessingRun();
+    string GetClassCodeForProcessingRun();
+    string[] GetImportsForProcessingRun();
+    string GetPostInitializationCodeForProcessingRun();
+    string GetPreInitializationCodeForProcessingRun();
+    string[] GetReferencesForProcessingRun();
+    CodeAttributeDeclarationCollection GetTemplateClassCustomAttributes();  //TODO
+    void Initialize(ITextTemplatingEngineHost host);
+    bool IsDirectiveSupported(string directiveName);
+    void ProcessDirective(string directiveName, IDictionary<string, string> arguments);
+    void SetProcessingRunIsHostSpecific(bool hostSpecific);
+    void StartProcessingRun(CodeDomProvider languageProvider, string templateContents, CompilerErrorCollection errors);
+}

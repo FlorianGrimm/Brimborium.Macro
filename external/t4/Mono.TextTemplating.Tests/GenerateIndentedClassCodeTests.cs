@@ -31,62 +31,57 @@ using Xunit;
 
 using Mono.TextTemplating.CodeDomBuilder;
 
-namespace Mono.TextTemplating.Tests
-{
-	public class GenerateIndentedClassCodeTests
-	{
-		[Fact]
-		public void FieldAndPropertyGenerated ()
-		{
-			var provider = CodeDomProvider.CreateProvider ("C#");
-			var field = CreateBoolField ();
-			var property = CreateBoolProperty ();
+namespace Mono.TextTemplating.Tests;
 
-			string output = IndentHelpers.GenerateIndentedClassCode (provider, field, property);
-			output = FixOutput (output);
-			string expectedOutput = FixOutput (MethodAndFieldGeneratedOutput);
+public class GenerateIndentedClassCodeTests {
+    [Fact]
+    public void FieldAndPropertyGenerated() {
+        var provider = CodeDomProvider.CreateProvider("C#");
+        var field = CreateBoolField();
+        var property = CreateBoolProperty();
 
-			Assert.Equal (expectedOutput, output);
-		}
+        string output = IndentHelpers.GenerateIndentedClassCode(provider, field, property);
+        output = FixOutput(output);
+        string expectedOutput = FixOutput(MethodAndFieldGeneratedOutput);
 
-		static CodeMemberField CreateBoolField ()
-		{
-			var type = new CodeTypeReference (typeof(bool));
-			return new CodeMemberField { Name = "myField", Type = type };
-		}
+        Assert.Equal(expectedOutput, output);
+    }
 
-		static CodeMemberProperty CreateBoolProperty ()
-		{
-			var type = new CodeTypeReference (typeof(bool));
-			var prop = new CodeMemberProperty { Name = "MyProperty", Type = type };
-			prop.GetStatements.Add (
-				new CodeMethodReturnStatement (
-					new CodePrimitiveExpression (true)
-				)
-			);
-			return prop;
-		}
+    static CodeMemberField CreateBoolField() {
+        var type = new CodeTypeReference(typeof(bool));
+        return new CodeMemberField { Name = "myField", Type = type };
+    }
 
-		/// <summary>
-		/// Remove empty lines which are not generated on Mono.
-		/// </summary>
-		static string FixOutput (string output, string newLine = "\n")
-		{
-			using var writer = new StringWriter ();
-			using var reader = new StringReader (output);
+    static CodeMemberProperty CreateBoolProperty() {
+        var type = new CodeTypeReference(typeof(bool));
+        var prop = new CodeMemberProperty { Name = "MyProperty", Type = type };
+        prop.GetStatements.Add(
+            new CodeMethodReturnStatement(
+                new CodePrimitiveExpression(true)
+            )
+        );
+        return prop;
+    }
 
-			string line;
-			while ((line = reader.ReadLine ()) != null) {
-				if (!string.IsNullOrWhiteSpace (line)) {
-					writer.Write (line);
-					writer.Write (newLine);
-				}
-			}
+    /// <summary>
+    /// Remove empty lines which are not generated on Mono.
+    /// </summary>
+    static string FixOutput(string output, string newLine = "\n") {
+        using var writer = new StringWriter();
+        using var reader = new StringReader(output);
 
-			return writer.ToString ();
-		}
+        string line;
+        while ((line = reader.ReadLine()) != null) {
+            if (!string.IsNullOrWhiteSpace(line)) {
+                writer.Write(line);
+                writer.Write(newLine);
+            }
+        }
 
-		public const string MethodAndFieldGeneratedOutput =
+        return writer.ToString();
+    }
+
+    public const string MethodAndFieldGeneratedOutput =
 @"
         private bool myField;
 
@@ -96,5 +91,4 @@ namespace Mono.TextTemplating.Tests
             }
         }
 ";
-	}
 }

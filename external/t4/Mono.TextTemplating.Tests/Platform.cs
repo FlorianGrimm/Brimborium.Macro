@@ -29,54 +29,47 @@ using System.Runtime.InteropServices;
 using System.IO;
 
 //from MonoDevelop.Core.Platform
-namespace Mono.TextTemplating.Tests
-{
-	static class Platform
-	{
-		public readonly static bool IsWindows;
-		public readonly static bool IsMac;
-		public readonly static bool IsLinux;
-		public readonly static bool IsMono;
+namespace Mono.TextTemplating.Tests;
 
-		public static Version OSVersion { get; private set; }
+static class Platform {
+    public readonly static bool IsWindows;
+    public readonly static bool IsMac;
+    public readonly static bool IsLinux;
+    public readonly static bool IsMono;
 
-		static Platform ()
-		{
-			IsWindows = Path.DirectorySeparatorChar == '\\';
-			IsMac = !IsWindows && IsRunningOnMac ();
-			IsLinux = !IsMac && !IsWindows;
-			OSVersion = Environment.OSVersion.Version;
-			IsMono = Type.GetType ("Mono.Runtime") != null;
-		}
+    public static Version OSVersion { get; private set; }
 
-		public static void Initialize ()
-		{
-			//no-op, triggers static ctor
-		}
+    static Platform() {
+        IsWindows = Path.DirectorySeparatorChar == '\\';
+        IsMac = !IsWindows && IsRunningOnMac();
+        IsLinux = !IsMac && !IsWindows;
+        OSVersion = Environment.OSVersion.Version;
+        IsMono = Type.GetType("Mono.Runtime") != null;
+    }
 
-		[DllImport ("libc")]
-		static extern int uname (IntPtr buf);
+    public static void Initialize() {
+        //no-op, triggers static ctor
+    }
 
-		//From Managed.Windows.Forms/XplatUI
-		static bool IsRunningOnMac ()
-		{
-			IntPtr buf = IntPtr.Zero;
-			try {
-				buf = Marshal.AllocHGlobal (8192);
-				// This is a hacktastic way of getting sysname from uname ()
-				if (uname (buf) == 0) {
-					string os = Marshal.PtrToStringAnsi (buf);
-					if (os == "Darwin")
-						return true;
-				}
-			}
-			catch {
-			}
-			finally {
-				if (buf != IntPtr.Zero)
-					Marshal.FreeHGlobal (buf);
-			}
-			return false;
-		}
-	}
+    [DllImport("libc")]
+    static extern int uname(IntPtr buf);
+
+    //From Managed.Windows.Forms/XplatUI
+    static bool IsRunningOnMac() {
+        IntPtr buf = IntPtr.Zero;
+        try {
+            buf = Marshal.AllocHGlobal(8192);
+            // This is a hacktastic way of getting sysname from uname ()
+            if (uname(buf) == 0) {
+                string os = Marshal.PtrToStringAnsi(buf);
+                if (os == "Darwin")
+                    return true;
+            }
+        } catch {
+        } finally {
+            if (buf != IntPtr.Zero)
+                Marshal.FreeHGlobal(buf);
+        }
+        return false;
+    }
 }

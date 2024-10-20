@@ -108,12 +108,13 @@ internal class Program {
     [InlineData(70)]
     [InlineData(80)]
     [InlineData(90)]
-#warning StackOverflowException
-    [InlineData(100)]
+    //[InlineData(100)]
     //[InlineData(200)]
     //[InlineData(300)]
     //[InlineData(400)]
     //[InlineData(500)]
+#warning StackOverflowException
+    // at Microsoft.CodeAnalysis.Testing.WeightedMatch.MatchRecursive[[Microsoft.CodeAnalysis.Testing.DiagnosticResult, 
     //[InlineData(1000)]
     public async Task MacroAnalyzer_RegionAndComment_Many_Diagnostic(int regionCount) {
 

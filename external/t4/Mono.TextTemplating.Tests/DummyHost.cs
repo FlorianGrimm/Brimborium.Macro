@@ -29,57 +29,52 @@ using System.Collections.Generic;
 using System.CodeDom.Compiler;
 using Microsoft.VisualStudio.TextTemplating;
 
-namespace Mono.TextTemplating.Tests
-{
+namespace Mono.TextTemplating.Tests;
 
-	public class DummyHost : ITextTemplatingEngineHost
-	{
-		public Dictionary<string, string> Locations { get; } = new ();
-		public Dictionary<string, string> Contents { get; } = new ();
-		public Dictionary<string, object> HostOptions { get; } = new ();
-		public CompilerErrorCollection Errors { get; } = new ();
-		public Dictionary<string, Type> DirectiveProcessors { get; } = new ();
 
-		readonly List<string> standardAssemblyReferences = new ();
-		readonly List<string> standardImports = new ();
+public class DummyHost : ITextTemplatingEngineHost {
+    public Dictionary<string, string> Locations { get; } = new();
+    public Dictionary<string, string> Contents { get; } = new();
+    public Dictionary<string, object> HostOptions { get; } = new();
+    public CompilerErrorCollection Errors { get; } = new();
+    public Dictionary<string, Type> DirectiveProcessors { get; } = new();
 
-		public virtual object GetHostOption (string optionName)
-		{
-			HostOptions.TryGetValue (optionName, out var option);
-			return option;
-		}
+    readonly List<string> standardAssemblyReferences = new();
+    readonly List<string> standardImports = new();
 
-		public virtual bool LoadIncludeText (string requestFileName, out string content, out string location)
-		{
-			content = null;
-			return Locations.TryGetValue (requestFileName, out location)
-				&& Contents.TryGetValue (location, out content);
-		}
+    public virtual object GetHostOption(string optionName) {
+        HostOptions.TryGetValue(optionName, out var option);
+        return option;
+    }
 
-		public virtual void LogErrors (CompilerErrorCollection errors) => Errors.AddRange (errors);
+    public virtual bool LoadIncludeText(string requestFileName, out string content, out string location) {
+        content = null;
+        return Locations.TryGetValue(requestFileName, out location)
+            && Contents.TryGetValue(location, out content);
+    }
 
-		public virtual AppDomain ProvideTemplatingAppDomain (string content) => null;
+    public virtual void LogErrors(CompilerErrorCollection errors) => Errors.AddRange(errors);
 
-		public virtual string ResolveAssemblyReference (string assemblyReference) => throw new NotImplementedException ();
+    public virtual AppDomain ProvideTemplatingAppDomain(string content) => null;
 
-		public virtual Type ResolveDirectiveProcessor (string processorName)
-		{
-			DirectiveProcessors.TryGetValue (processorName, out Type t);
-			return t;
-		}
+    public virtual string ResolveAssemblyReference(string assemblyReference) => throw new NotImplementedException();
 
-		public virtual string ResolveParameterValue (string directiveId, string processorName, string parameterName) => throw new NotImplementedException ();
+    public virtual Type ResolveDirectiveProcessor(string processorName) {
+        DirectiveProcessors.TryGetValue(processorName, out Type t);
+        return t;
+    }
 
-		public virtual string ResolvePath (string path) => throw new NotImplementedException ();
+    public virtual string ResolveParameterValue(string directiveId, string processorName, string parameterName) => throw new NotImplementedException();
 
-		public virtual void SetFileExtension (string extension) => throw new NotImplementedException ();
+    public virtual string ResolvePath(string path) => throw new NotImplementedException();
 
-		public virtual void SetOutputEncoding (System.Text.Encoding encoding, bool fromOutputDirective) => throw new NotImplementedException ();
+    public virtual void SetFileExtension(string extension) => throw new NotImplementedException();
 
-		public virtual IList<string> StandardAssemblyReferences => standardAssemblyReferences;
+    public virtual void SetOutputEncoding(System.Text.Encoding encoding, bool fromOutputDirective) => throw new NotImplementedException();
 
-		public virtual IList<string> StandardImports => standardImports;
+    public virtual IList<string> StandardAssemblyReferences => standardAssemblyReferences;
 
-		public virtual string TemplateFile { get; set; }
-	}
+    public virtual IList<string> StandardImports => standardImports;
+
+    public virtual string TemplateFile { get; set; }
 }

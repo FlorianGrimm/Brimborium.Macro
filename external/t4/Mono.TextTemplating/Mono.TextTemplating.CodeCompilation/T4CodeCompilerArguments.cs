@@ -1,21 +1,21 @@
-// 
-// EncodingHelper.cs
-//  
+﻿//
+// CodeCompiler.cs
+//
 // Author:
 //       Mikayla Hutchinson <m.j.hutchinson@gmail.com>
-// 
-// Copyright (c) 2010 Novell, Inc.
-// 
+//
+// Copyright (c) 2018 Microsoft Corp
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,15 +24,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
-using System.Text;
+namespace Mono.TextTemplating.CodeCompilation;
 
-namespace Microsoft.VisualStudio.TextTemplating;
-
-[Obsolete("Not implemented")]
-public static class EncodingHelper {
-    public static Encoding GetEncoding(string filePath) {
-        throw new NotImplementedException();
-    }
+internal class T4CodeCompilerArguments
+    {
+    public List<string> SourceFiles { get; } = new List<string>();
+    public List<string> AssemblyReferences { get; } = new List<string>();
+    public string AdditionalArguments { get; set; }
+    public bool Debug { get; set; }
+    public string OutputPath { get; set; }
+    public string TempDirectory { get; set; }
+    public string LangVersion { get; set; }
 }
-

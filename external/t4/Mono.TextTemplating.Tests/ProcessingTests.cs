@@ -32,171 +32,157 @@ using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Mono.TextTemplating.Tests
-{
-	public class ProcessingTests
-	{
-		[Fact]
-		public async Task TemplateGeneratorTest ()
-		{
-			using var ctx = new TrackingSynchronizationContext ();
+namespace Mono.TextTemplating.Tests;
 
-			var gen = new TemplateGenerator ();
-			await gen.ProcessTemplateAsync (null, "<#@ template language=\"C#\" #>", null);
-			Assert.Null (gen.Errors.OfType<CompilerError> ().FirstOrDefault ());
+public class ProcessingTests {
+    [Fact]
+    public async Task TemplateGeneratorTest() {
+        using var ctx = new TrackingSynchronizationContext();
 
-			ctx.AssertMaxCallCount (1);
-		}
+        var gen = new T4TemplateGenerator();
+        await gen.ProcessTemplateAsync(null, "<#@ template language=\"C#\" #>", null);
+        Assert.Null(gen.Errors.OfType<CompilerError>().FirstOrDefault());
 
-		[Fact]
-		public async Task CSharp9Records ()
-		{
-			string template = "<#+ public record Foo(string bar); #>";
-			var gen = new TemplateGenerator ();
-			string outputName = null;
-			await gen.ProcessTemplateAsync (null, template, outputName);
+        ctx.AssertMaxCallCount(1);
+    }
 
-			CompilerError firstError = gen.Errors.OfType<CompilerError> ().FirstOrDefault ();
+    [Fact]
+    public async Task CSharp9Records() {
+        string template = "<#+ public record Foo(string bar); #>";
+        var gen = new T4TemplateGenerator();
+        string outputName = null;
+        await gen.ProcessTemplateAsync(null, template, outputName);
 
-			// note: when running on netsdk we use the highest available csc regardless of runtime version,
-			// so records will always be available on our test environments
+        CompilerError firstError = gen.Errors.OfType<CompilerError>().FirstOrDefault();
+
+        // note: when running on netsdk we use the highest available csc regardless of runtime version,
+        // so records will always be available on our test environments
 #if NETFRAMEWORK
-			Assert.NotNull (firstError);
+        Assert.NotNull(firstError);
 #else
-			Assert.Null (firstError);
+        Assert.Null(firstError);
 #endif
-		}
+    }
 
-		[Fact]
-		public async Task CSharp11StructRecords ()
-		{
-			string template = "<#+ public record struct Foo(string bar); #>";
-			var gen = new TemplateGenerator ();
-			string outputName = null;
-			await gen.ProcessTemplateAsync (null, template, outputName);
+    [Fact]
+    public async Task CSharp11StructRecords() {
+        string template = "<#+ public record struct Foo(string bar); #>";
+        var gen = new T4TemplateGenerator();
+        string outputName = null;
+        await gen.ProcessTemplateAsync(null, template, outputName);
 
-			CompilerError firstError = gen.Errors.OfType<CompilerError> ().FirstOrDefault ();
+        CompilerError firstError = gen.Errors.OfType<CompilerError>().FirstOrDefault();
 
-			// note: when running on netsdk we use the highest available csc regardless of runtime version,
-			// so struct records will always be available on our test environments
+        // note: when running on netsdk we use the highest available csc regardless of runtime version,
+        // so struct records will always be available on our test environments
 #if NETFRAMEWORK
-			Assert.NotNull (firstError);
+        Assert.NotNull (firstError);
 #else
-			Assert.Null (firstError);
+        Assert.Null(firstError);
 #endif
-		}
+    }
 
 #if !NETFRAMEWORK
-		[Fact]
-		public async Task SetLangVersionViaAttribute ()
-		{
-			string template = "<#@ template langversion='5' #><#+ public int Foo { get; } = 5; #>";
-			var gen = new TemplateGenerator ();
-			await gen.ProcessTemplateAsync (null, template, null);
+    [Fact]
+    public async Task SetLangVersionViaAttribute() {
+        string template = "<#@ template langversion='5' #><#+ public int Foo { get; } = 5; #>";
+        var gen = new T4TemplateGenerator();
+        await gen.ProcessTemplateAsync(null, template, null);
 
-			CompilerError firstError = gen.Errors.OfType<CompilerError> ().FirstOrDefault ();
+        CompilerError firstError = gen.Errors.OfType<CompilerError>().FirstOrDefault();
 
-			Assert.NotNull (firstError);
-			Assert.True (gen.Errors.OfType<CompilerError> ().All (c => c.ErrorText.Contains ("not available in C# 5")));
-		}
+        Assert.NotNull(firstError);
+        Assert.True(gen.Errors.OfType<CompilerError>().All(c => c.ErrorText.Contains("not available in C# 5")));
+    }
 
-		[Fact]
-		public async Task SetLangVersionViaAttributeInProcess ()
-		{
-			string template = "<#@ template langversion='5' #><#+ public int Foo { get; } = 5; #>";
-			var gen = new TemplateGenerator ();
-			// gen.UseInProcessCompiler ();
-			await gen.ProcessTemplateAsync (null, template, null);
+    [Fact]
+    public async Task SetLangVersionViaAttributeInProcess() {
+        string template = "<#@ template langversion='5' #><#+ public int Foo { get; } = 5; #>";
+        var gen = new T4TemplateGenerator();
+        // gen.UseInProcessCompiler ();
+        await gen.ProcessTemplateAsync(null, template, null);
 
-			CompilerError firstError = gen.Errors.OfType<CompilerError> ().FirstOrDefault ();
-			Assert.NotNull (firstError);
-			Assert.True (gen.Errors.OfType<CompilerError> ().All (c => c.ErrorText.Contains ("not available in C# 5")));
-		}
+        CompilerError firstError = gen.Errors.OfType<CompilerError>().FirstOrDefault();
+        Assert.NotNull(firstError);
+        Assert.True(gen.Errors.OfType<CompilerError>().All(c => c.ErrorText.Contains("not available in C# 5")));
+    }
 
-		[Fact]
-		public async Task SetLangVersionViaAdditionalArgs ()
-		{
-			string template = "<#@ template compilerOptions='-langversion:5' #><#+ public int Foo { get; } = 5; #>";
-			var gen = new TemplateGenerator ();
-			await gen.ProcessTemplateAsync (null, template, null);
+    [Fact]
+    public async Task SetLangVersionViaAdditionalArgs() {
+        string template = "<#@ template compilerOptions='-langversion:5' #><#+ public int Foo { get; } = 5; #>";
+        var gen = new T4TemplateGenerator();
+        await gen.ProcessTemplateAsync(null, template, null);
 
-			CompilerError firstError = gen.Errors.OfType<CompilerError> ().FirstOrDefault ();
-			Assert.NotNull (firstError);
-			Assert.True (gen.Errors.OfType<CompilerError> ().All (c => c.ErrorText.Contains ("not available in C# 5")));
-		}
+        CompilerError firstError = gen.Errors.OfType<CompilerError>().FirstOrDefault();
+        Assert.NotNull(firstError);
+        Assert.True(gen.Errors.OfType<CompilerError>().All(c => c.ErrorText.Contains("not available in C# 5")));
+    }
 
-		[Fact]
-		public async Task SetLangVersionViaAdditionalArgsInProcess ()
-		{
-			string template = "<#@ template compilerOptions='-langversion:5' #><#+ public int Foo { get; } = 5; #>";
-			var gen = new TemplateGenerator ();
-			// gen.UseInProcessCompiler ();
-			await gen.ProcessTemplateAsync (null, template, null);
+    [Fact]
+    public async Task SetLangVersionViaAdditionalArgsInProcess() {
+        string template = "<#@ template compilerOptions='-langversion:5' #><#+ public int Foo { get; } = 5; #>";
+        var gen = new T4TemplateGenerator();
+        // gen.UseInProcessCompiler ();
+        await gen.ProcessTemplateAsync(null, template, null);
 
-			CompilerError firstError = gen.Errors.OfType<CompilerError> ().FirstOrDefault ();
-			Assert.NotNull (firstError);
-			Assert.Contains ("not available in C# 5", firstError.ErrorText);
-		}
+        CompilerError firstError = gen.Errors.OfType<CompilerError>().FirstOrDefault();
+        Assert.NotNull(firstError);
+        Assert.Contains("not available in C# 5", firstError.ErrorText);
+    }
 #endif
 
-		[Fact]
-		public async Task SetOutputExtension ()
-		{
-			string inputContent = "<#@ output extension=\".cfg\" #>";
-			string inputFile = "hello.tt";
-			string outputName = "hello.txt";
+    [Fact]
+    public async Task SetOutputExtension() {
+        string inputContent = "<#@ output extension=\".cfg\" #>";
+        string inputFile = "hello.tt";
+        string outputName = "hello.txt";
 
-			// this reproduces the calls made by dotnet-t4
-			var gen = new TemplateGenerator ();
-			var pt = gen.ParseTemplate (inputFile, inputContent);
-			TemplateSettings settings = TemplatingEngine.GetSettings (gen, pt);
-			(outputName, _) = await gen.ProcessTemplateAsync (pt, inputFile, inputContent, outputName, settings);
+        // this reproduces the calls made by dotnet-t4
+        var gen = new T4TemplateGenerator();
+        var pt = gen.ParseTemplate(inputFile, inputContent);
+        T4TemplateSettings settings = T4TemplatingEngine.GetSettings(gen, pt);
+        (outputName, _) = await gen.ProcessTemplateAsync(pt, inputFile, inputContent, outputName, settings);
 
-			Assert.Equal ("hello.cfg", outputName);
-		}
+        Assert.Equal("hello.cfg", outputName);
+    }
 
-		[Fact]
-		public async Task ImportReferencesTest ()
-		{
-			var gen = new TemplateGenerator ();
-			gen.ReferencePaths.Add (Path.GetDirectoryName (typeof (Uri).Assembly.Location));
-			gen.ReferencePaths.Add (Path.GetDirectoryName (typeof (Enumerable).Assembly.Location));
-			await gen.ProcessTemplateAsync (null, "<#@ assembly name=\"System.dll\" #>\n<#@ assembly name=\"System.Core.dll\" #>", null);
-			Assert.Null (gen.Errors.OfType<CompilerError> ().FirstOrDefault ());
-		}
+    [Fact]
+    public async Task ImportReferencesTest() {
+        var gen = new T4TemplateGenerator();
+        gen.ReferencePaths.Add(Path.GetDirectoryName(typeof(Uri).Assembly.Location));
+        gen.ReferencePaths.Add(Path.GetDirectoryName(typeof(Enumerable).Assembly.Location));
+        await gen.ProcessTemplateAsync(null, "<#@ assembly name=\"System.dll\" #>\n<#@ assembly name=\"System.Core.dll\" #>", null);
+        Assert.Null(gen.Errors.OfType<CompilerError>().FirstOrDefault());
+    }
 
-		[Fact]
-		public async Task InProcessCompilerTest ()
-		{
-			using var ctx = new TrackingSynchronizationContext ();
+    [Fact]
+    public async Task InProcessCompilerTest() {
+        using var ctx = new TrackingSynchronizationContext();
 
-			var gen = new TemplateGenerator ();
-			// gen.UseInProcessCompiler ();
-			gen.ReferencePaths.Add (Path.GetDirectoryName (typeof (Uri).Assembly.Location));
-			gen.ReferencePaths.Add (Path.GetDirectoryName (typeof (Enumerable).Assembly.Location));
-			await gen.ProcessTemplateAsync (null, "<#@ assembly name=\"System.dll\" #>\n<#@ assembly name=\"System.Core.dll\" #>", null);
-			Assert.Null (gen.Errors.OfType<CompilerError> ().FirstOrDefault ());
+        var gen = new T4TemplateGenerator();
+        // gen.UseInProcessCompiler ();
+        gen.ReferencePaths.Add(Path.GetDirectoryName(typeof(Uri).Assembly.Location));
+        gen.ReferencePaths.Add(Path.GetDirectoryName(typeof(Enumerable).Assembly.Location));
+        await gen.ProcessTemplateAsync(null, "<#@ assembly name=\"System.dll\" #>\n<#@ assembly name=\"System.Core.dll\" #>", null);
+        Assert.Null(gen.Errors.OfType<CompilerError>().FirstOrDefault());
 
-			ctx.AssertMaxCallCount (1);
-		}
+        ctx.AssertMaxCallCount(1);
+    }
 
-		[Fact]
-		public async Task InProcessCompilerDebugTest ()
-		{
-			var gen = new TemplateGenerator ();
-			// gen.UseInProcessCompiler ();
-			gen.ReferencePaths.Add (Path.GetDirectoryName (typeof (Uri).Assembly.Location));
-			gen.ReferencePaths.Add (Path.GetDirectoryName (typeof (Enumerable).Assembly.Location));
-			await gen.ProcessTemplateAsync (null, "<#@ template debug=\"true\" #><#@ assembly name=\"System.dll\" #>\n<#@ assembly name=\"System.Core.dll\" #>", null);
-			Assert.Null (gen.Errors.OfType<CompilerError> ().FirstOrDefault ());
-		}
+    [Fact]
+    public async Task InProcessCompilerDebugTest() {
+        var gen = new T4TemplateGenerator();
+        // gen.UseInProcessCompiler ();
+        gen.ReferencePaths.Add(Path.GetDirectoryName(typeof(Uri).Assembly.Location));
+        gen.ReferencePaths.Add(Path.GetDirectoryName(typeof(Enumerable).Assembly.Location));
+        await gen.ProcessTemplateAsync(null, "<#@ template debug=\"true\" #><#@ assembly name=\"System.dll\" #>\n<#@ assembly name=\"System.Core.dll\" #>", null);
+        Assert.Null(gen.Errors.OfType<CompilerError>().FirstOrDefault());
+    }
 
-		[Fact]
-		public async Task IncludeFileThatDoesNotExistTest ()
-		{
-			var gen = new TemplateGenerator ();
-			await gen.ProcessTemplateAsync (null, "<#@ include file=\"none.tt\" #>", null);
-			Assert.StartsWith ("Could not read included file 'none.tt'", gen.Errors.OfType<CompilerError> ().First ().ErrorText);
-		}
-	}
+    [Fact]
+    public async Task IncludeFileThatDoesNotExistTest() {
+        var gen = new T4TemplateGenerator();
+        await gen.ProcessTemplateAsync(null, "<#@ include file=\"none.tt\" #>", null);
+        Assert.StartsWith("Could not read included file 'none.tt'", gen.Errors.OfType<CompilerError>().First().ErrorText);
+    }
 }

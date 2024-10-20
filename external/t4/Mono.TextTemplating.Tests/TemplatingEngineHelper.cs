@@ -27,52 +27,49 @@
 using System;
 using System.IO;
 
-namespace Mono.TextTemplating.Tests
-{
-	public static class TemplatingEngineHelper
-	{
-		/// <summary>
-		/// Cleans CodeDOM generated code so that Windows/Mac and Mono/.NET output can be compared.
-		/// </summary>
-		public static string CleanCodeDom (string input, string newLine)
-		{
-			using var writer = new StringWriter ();
-			using var reader = new StringReader (input);
+namespace Mono.TextTemplating.Tests;
 
-			bool afterLineDirective = true;
-			bool stripHeader = true;
+public static class TemplatingEngineHelper {
+    /// <summary>
+    /// Cleans CodeDOM generated code so that Windows/Mac and Mono/.NET output can be compared.
+    /// </summary>
+    public static string CleanCodeDom(string input, string newLine) {
+        using var writer = new StringWriter();
+        using var reader = new StringReader(input);
 
-			string line;
-			while ((line = reader.ReadLine ()) != null) {
+        bool afterLineDirective = true;
+        bool stripHeader = true;
 
-				if (stripHeader) {
-					if (line.StartsWith ("//", StringComparison.Ordinal) || string.IsNullOrWhiteSpace (line))
-						continue;
-					stripHeader = false;
-				}
+        string line;
+        while ((line = reader.ReadLine()) != null) {
 
-				if (afterLineDirective) {
-					if (string.IsNullOrWhiteSpace (line))
-						continue;
-					afterLineDirective = false;
-				}
+            if (stripHeader) {
+                if (line.StartsWith("//", StringComparison.Ordinal) || string.IsNullOrWhiteSpace(line))
+                    continue;
+                stripHeader = false;
+            }
 
-				if (line.Contains ("#line")) {
-					afterLineDirective = true;
-				}
+            if (afterLineDirective) {
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+                afterLineDirective = false;
+            }
 
-				writer.Write (line);
-				writer.Write (newLine);
-			}
+            if (line.Contains("#line")) {
+                afterLineDirective = true;
+            }
 
-			var result = writer.ToString ();
+            writer.Write(line);
+            writer.Write(newLine);
+        }
 
-			// \r\n can leak into the strings. we can't just sanitize the engine input, as it can also leak in via includes.
-			if (newLine == "\n") {
-				return result.Replace ("\\r\\n", "\\n");
-			}
+        var result = writer.ToString();
 
-			return result;
-		}
-	}
+        // \r\n can leak into the strings. we can't just sanitize the engine input, as it can also leak in via includes.
+        if (newLine == "\n") {
+            return result.Replace("\\r\\n", "\\n");
+        }
+
+        return result;
+    }
 }

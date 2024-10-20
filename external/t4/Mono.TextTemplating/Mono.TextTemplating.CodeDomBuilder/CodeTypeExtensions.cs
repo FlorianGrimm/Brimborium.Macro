@@ -33,31 +33,40 @@ internal static class CodeTypeExtensions {
 
     [Obsolete(NotValidOnType)]
     public static CodeTypeDeclaration AsPrivate(this CodeTypeDeclaration type) => ThrowNotValid();
+
     public static CodeTypeDeclaration AsPublic(this CodeTypeDeclaration type) => type.WithVisibility(TypeAttributes.Public);
+
     [Obsolete(NotValidOnType)]
     public static CodeTypeDeclaration AsProtected(this CodeTypeDeclaration type) => ThrowNotValid();
+
     public static CodeTypeDeclaration AsInternal(this CodeTypeDeclaration type) => type.WithVisibility(TypeAttributes.NotPublic);
+
     [Obsolete(NotValidOnType)]
     public static CodeTypeDeclaration AsInternalProtected(this CodeTypeDeclaration type) => ThrowNotValid();
 
     [Obsolete(NotValidOnType)]
     public static CodeTypeDeclaration AsVirtual(this CodeTypeDeclaration type) => ThrowNotValid();
+
     public static CodeTypeDeclaration AsAbstract(this CodeTypeDeclaration type) => type.WithTypeAttributesAdded(TypeAttributes.Abstract);
+
     public static CodeTypeDeclaration AsSealed(this CodeTypeDeclaration type) => type.WithTypeAttributesAdded(TypeAttributes.Sealed);
+
     public static CodeTypeDeclaration AsNew(this CodeTypeDeclaration member) => member.AsNew<CodeTypeDeclaration>();
+
     [Obsolete(NotValidOnType)]
     public static CodeTypeDeclaration AsOverride(this CodeTypeDeclaration type) => ThrowNotValid();
     // END SYNCED SECTION
 
     public static CodeTypeDeclaration AsNestedPublic(this CodeTypeDeclaration type) => type.WithVisibility(TypeAttributes.NestedPublic);
+
     public static CodeTypeDeclaration AsNestedProtected(this CodeTypeDeclaration type) => type.WithVisibility(TypeAttributes.NestedFamily);
+
     public static CodeTypeDeclaration AsNestedProtectedInternal(this CodeTypeDeclaration type) => type.WithVisibility(TypeAttributes.NestedFamORAssem);
 
     public static CodeTypeDeclaration AsPartial(this CodeTypeDeclaration type) {
         type.IsPartial = true;
         return type;
     }
-
     public static CodeMemberProperty AddProperty(this CodeTypeDeclaration type, string propertyName, CodeTypeReference propertyType)
         => type.AddMember(Declare.Property(propertyName, propertyType));
 

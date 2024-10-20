@@ -26,7 +26,7 @@ internal class TemplateAssemblyLoadContext : AssemblyLoadContext {
         hostAssembly = host.GetType().Assembly;
 
         codeDomAsmName = typeof(CompilerErrorCollection).Assembly.GetName();
-        textTemplatingAsmName = typeof(TemplateGenerator).Assembly.GetName();
+        textTemplatingAsmName = typeof(T4TemplateGenerator).Assembly.GetName();
         hostAsmName = hostAssembly.GetName();
 
         // the parent load context is the context that loaded the host assembly
@@ -63,7 +63,7 @@ internal class TemplateAssemblyLoadContext : AssemblyLoadContext {
             return typeof(CompilerErrorCollection).Assembly;
         }
         if (assemblyName.Name == textTemplatingAsmName.Name) {
-            return typeof(TemplateGenerator).Assembly;
+            return typeof(T4TemplateGenerator).Assembly;
         }
 
         // The host may be a custom host, and must also be in the same context, so that host-specific
