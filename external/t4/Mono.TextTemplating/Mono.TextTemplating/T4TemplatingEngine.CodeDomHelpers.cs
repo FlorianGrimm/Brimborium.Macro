@@ -10,7 +10,7 @@ public partial class T4TemplatingEngine {
     /// </summary>
     internal static void GenerateCodeFromMembers(CodeDomProvider provider, CodeGeneratorOptions options, StringWriter sw, IEnumerable<CodeTypeMember> members)
         => IndentHelpers.GenerateCodeFromMembers(provider, options, sw, members);
-    
+
     internal static string GenerateIndentedClassCode(CodeDomProvider provider, params CodeTypeMember[] members)
         => IndentHelpers.GenerateIndentedClassCode(provider, members);
 
