@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using System.Text;
 using System.Collections;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Brimborium.Macro;
 
@@ -128,6 +129,13 @@ public class MacroCodeFixProvider : CodeFixProvider {
                 return document;
             }
         }
+        if (!document.TryGetSemanticModel(out var semanticModel)) { 
+            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            //if (semanticModel is null) {                return document;            }
+        }
+        
+        // DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
         Location location = Location.Create(syntaxTree, sourceSpan);
         var macroParseRegionsResults = MacroParseRegions.ParseRegions(syntaxTree, location, cancellationToken);
         if (macroParseRegionsResults.Error is { }) { return document; }
@@ -140,7 +148,7 @@ public class MacroCodeFixProvider : CodeFixProvider {
 
         string stringNextMacroContent;
         try {
-            stringNextMacroContent = RunMacro(
+            stringNextMacroContent = await RunMacroAsync(
                 macroUpdateRegionPreparation.Macro,
                 macroUpdateRegionPreparation.StringIndent,
                 cancellationToken);
@@ -286,7 +294,8 @@ public class MacroCodeFixProvider : CodeFixProvider {
         return documentNext;
     }
 
-    private static string RunMacro(string macro, string stringIndent, CancellationToken cancellationToken) {
+    private static async Task<string> RunMacroAsync(string macro, string stringIndent, CancellationToken cancellationToken) {
+        await Task.CompletedTask;
         return $"{stringIndent}// Macro: {macro} //";
     }
 

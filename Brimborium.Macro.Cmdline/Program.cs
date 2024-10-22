@@ -12,13 +12,14 @@ public class Program {
         builder.Services.AddOptions<WorkspaceServiceOptions>();
         builder.Services.AddSingleton<WorkspaceService>();
         var app = builder.Build();
-        
-
         // NOTE: Be sure to register an instance with the MSBuildLocator 
         //       before calling MSBuildWorkspace.Create()
         //       otherwise, MSBuildWorkspace won't MEF compose.
-        var workspaceService = new WorkspaceService();
-        var visualStudioInstance = workspaceService.EnsureRegisterInstance();
+        var workspaceService = app.Services.GetRequiredService<WorkspaceService>();
+        var visualStudioInstance = app.Services.GetRequiredService<WorkspaceService>().EnsureRegisterInstance);
+
+        //var workspaceService = new WorkspaceService();
+        //var visualStudioInstance = workspaceService.EnsureRegisterInstance();
         Console.WriteLine($"Using MSBuild at '{visualStudioInstance.MSBuildPath}' to load projects.");
         
 
