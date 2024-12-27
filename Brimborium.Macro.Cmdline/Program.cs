@@ -8,6 +8,9 @@ namespace Brimborium.Macro.Cmdline;
 
 public class Program {
     public static async Task Main(string[] args) {
+        var root = await JupiterUtlity.Create().Build()
+            .OpenSolutionAsync(args.FirstOrDefault()?? @"D:\github.com\FlorianGrimm\Brimborium.Macro\Sample\Sample.sln");
+#if false
         var builder=Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         builder.Services.AddOptions<WorkspaceServiceOptions>();
         builder.Services.AddSingleton<WorkspaceService>();
@@ -16,7 +19,7 @@ public class Program {
         //       before calling MSBuildWorkspace.Create()
         //       otherwise, MSBuildWorkspace won't MEF compose.
         var workspaceService = app.Services.GetRequiredService<WorkspaceService>();
-        var visualStudioInstance = app.Services.GetRequiredService<WorkspaceService>().EnsureRegisterInstance);
+        var visualStudioInstance = app.Services.GetRequiredService<WorkspaceService>().EnsureRegisterInstance();
 
         //var workspaceService = new WorkspaceService();
         //var visualStudioInstance = workspaceService.EnsureRegisterInstance();
@@ -67,6 +70,7 @@ public class Program {
             }
             Console.WriteLine("Input not accepted, try again.");
         }
+#endif
     }
 
     private class ConsoleProgressReporter : IProgress<ProjectLoadProgress> {

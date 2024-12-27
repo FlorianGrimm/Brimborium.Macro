@@ -19,6 +19,7 @@ public class WorkspaceService {
     public WorkspaceService() {
         this.Options = new WorkspaceServiceOptions();
     }
+
     public WorkspaceService(IOptions<WorkspaceServiceOptions> options) {
         this.Options = options.Value;
     }
