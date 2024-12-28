@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Brimborium.Macro;
 
-public partial class JupiterUtlity {
+public partial class JupiterUtility {
     public class Boot {
         private static AssemblyResolver? _AssemblyResolver;
         private ServiceCollection? _ServiceDescriptors;

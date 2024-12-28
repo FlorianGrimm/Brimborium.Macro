@@ -8,7 +8,7 @@ namespace Brimborium.Macro.Cmdline;
 
 public class Program {
     public static async Task Main(string[] args) {
-        var root = await JupiterUtlity.Create().Build()
+        var root = await JupiterUtility.Create().Build()
             .OpenSolutionAsync(args.FirstOrDefault()?? @"D:\github.com\FlorianGrimm\Brimborium.Macro\Sample\Sample.sln");
 #if false
         var builder=Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();

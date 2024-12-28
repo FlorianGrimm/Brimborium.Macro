@@ -6,7 +6,7 @@ using System.Runtime.Loader;
 
 namespace Brimborium.Macro;
 
-public partial class JupiterUtlity {
+public partial class JupiterUtility {
     class PluginLoadContext : AssemblyLoadContext {
         private readonly AssemblyDependencyResolver _Resolver;
         private readonly DependencyContext? _DependencyContext;

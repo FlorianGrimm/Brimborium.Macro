@@ -8,10 +8,10 @@ using System.Runtime.Loader;
 
 namespace Brimborium.Macro;
 
-public partial class JupiterUtlity {
+public partial class JupiterUtility {
     public static Boot Create() => new Boot();
 
-    internal JupiterUtlity(ServiceProvider serviceProvider, SolutionService solutionService, Solution solution) {
+    internal JupiterUtility(ServiceProvider serviceProvider, SolutionService solutionService, Solution solution) {
         this.ServiceProvider = serviceProvider;
         this.SolutionService = solutionService;
         this.Solution = solution;

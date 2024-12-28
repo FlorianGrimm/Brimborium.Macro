@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Brimborium.Macro;
-public partial class JupiterUtlity {
+public partial class JupiterUtility {
     public class Loading {
         private ServiceProvider? _ServiceProvider;
 
@@ -11,12 +11,12 @@ public partial class JupiterUtlity {
 
         public ServiceProvider ServiceProvider => _ServiceProvider ?? throw new System.ObjectDisposedException("");
 
-        public async Task<JupiterUtlity> OpenSolutionAsync(
+        public async Task<JupiterUtility> OpenSolutionAsync(
             string solutionFilePath
             ) {
             var solutionService = this.ServiceProvider.GetRequiredService<SolutionService>();
             var solution = await solutionService.OpenSolutionAsync(solutionFilePath, default, default);
-            return new JupiterUtlity(this.ServiceProvider, solutionService, solution);
+            return new JupiterUtility(this.ServiceProvider, solutionService, solution);
         }
     }
 }
