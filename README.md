@@ -65,3 +65,8 @@ May be ..
 - Spanning Macros over many regions.
 - Performance / Caching
 https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/tutorials/how-to-write-csharp-analyzer-code-fix
+
+     var script = CSharpScript.Create("X + Y", options: ScriptOptions, globalsType: typeof(Globals));
+            var state = await script.RunAsync(new Globals { X = 1, Y = 2 });
+
+    SyntaxKind.RegionDirectiveTrivia:

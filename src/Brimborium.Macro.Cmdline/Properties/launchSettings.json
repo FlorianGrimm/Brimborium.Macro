@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Brimborium.Macro.Cmdline": {
+      "commandName": "Project",
+      "commandLineArgs": "--Macro:Solution:SolutionFilePath \"D:\\github.com\\FlorianGrimm\\Brimborium.Macro\\Sample\\Sample1\\Sample1.sln\""
+    }
+  }
+}
