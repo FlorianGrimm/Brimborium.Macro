@@ -66,7 +66,7 @@ public class BrimboriumMacroSourceGenerator : IIncrementalGenerator {
 
                 var syntaxTree = generatorAttributeSyntaxContext.TargetNode.SyntaxTree;
                 var sourceCodeText = syntaxTree.GetText().ToString();
-                int x = 20;
+                //int x = 20;
                 var l = syntaxTree.GetLocation(new TextSpan(20, 0));
                 _ = l.GetLineSpan().Span.Start.Line;
                 _ = l.GetLineSpan().Span.Start.Character;

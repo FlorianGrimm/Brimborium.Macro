@@ -14,7 +14,7 @@ public static class MacroExtensions {
             serviceDescriptors.Configure<WorkspaceServiceOptions>(configuration.GetSection("Workspace"));
             serviceDescriptors.Configure<SolutionServiceOptions>(configuration.GetSection("Solution"));
         }
-
+        serviceDescriptors.AddSingleton<BrainstormIdea>();
         return serviceDescriptors;
     }
 }

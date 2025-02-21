@@ -25,6 +25,8 @@ namespace Brimborium.Macro.Cmdline;
 
 public class Program {
     static async Task Main(string[] args) {
+
+#if false
         var template = Scriban.Template.Parse(@"
 <ul id='products'>
   {{ for product in products }}
@@ -49,6 +51,7 @@ new Scriban.Parsing.LexerOptions()
             renamer: context.MemberRenamer);
         context.PushGlobal(scriptObject);
         await template.RenderAsync(context).ConfigureAwait(false);
+#endif
         //context.MemberFilter
         //context.TemplateLoader = new Scriban.TemplateLoader();
 
@@ -66,8 +69,6 @@ new Scriban.Parsing.LexerOptions()
         using var host = builder.Build();
         await host.RunAsync();
     }
-
-
 
 #if false
     static async Task Main2(string[] args) {
@@ -121,6 +122,7 @@ new Scriban.Parsing.LexerOptions()
         }
     }
 #endif
+
     private class ConsoleProgressReporter : IProgress<ProjectLoadProgress> {
         public void Report(ProjectLoadProgress loadProgress) {
             var projectDisplay = Path.GetFileName(loadProgress.FilePath);
@@ -134,15 +136,18 @@ new Scriban.Parsing.LexerOptions()
 }
 
 internal class MacroHostedService : BackgroundService {
+    private readonly BrainstormIdea _BrainstormIdea;
     private readonly SolutionService _SolutionService;
     private readonly IHostApplicationLifetime _ApplicationLifetime;
     private readonly SolutionServiceOptions _SolutionServiceOptions;
 
     public MacroHostedService(
+        BrainstormIdea brainstormIdea,
         SolutionService solutionService,
         IOptions<SolutionServiceOptions> solutionServiceOptions,
         IHostApplicationLifetime applicationLifetime
         ) {
+        this._BrainstormIdea = brainstormIdea;
         this._SolutionService = solutionService;
         this._ApplicationLifetime = applicationLifetime;
         this._SolutionServiceOptions = solutionServiceOptions.Value;
@@ -152,10 +157,11 @@ internal class MacroHostedService : BackgroundService {
         if (!(_SolutionServiceOptions.SolutionFilePath is { Length: > 0 })) {
             throw new Exception("SolutionFilePath is not set.");
         }
-        var solution = await _SolutionService.OpenSolutionAsync(_SolutionServiceOptions.SolutionFilePath, null, ctStop);
-        if (!(solution is { })) {
-            throw new Exception("Solution is not loaded.");
-        }
+        
+        await _BrainstormIdea.OpenSolutionAsync(_SolutionServiceOptions.SolutionFilePath, ctStop);
+        await _BrainstormIdea.ListenForChanges(ctStop);
+        await _BrainstormIdea.UpdateAllMacros(ctStop);
+
         _ApplicationLifetime.StopApplication();
         return;
     }

@@ -175,7 +175,7 @@ public class MacroParserTests {
         Assert.Equal(true, MacroParser.EqualsLines("     a\r\n    b", "a\r\n b"));
         Assert.Equal(true, MacroParser.EqualsLines("     a\r\n    b\r\n", "a\r\n b"));
     }
-    //public static required string X { get; set; }
+    //public static required string GetIsGenerated { get; set; }
     [Fact]
     public async Task Test01() {
         var sourceCode = """
