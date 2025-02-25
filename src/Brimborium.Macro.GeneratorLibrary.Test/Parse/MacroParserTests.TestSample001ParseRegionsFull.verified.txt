@@ -1,0 +1,157 @@
+﻿{
+  DocumentRegionTree: {
+    FilePath: ,
+    Result: [
+      {
+        Start: {
+          Text: TestMe,
+          Kind: SyntaxTrivia,
+          SyntaxTrivia: {Scrubbed},
+          RegionDirective: {Scrubbed},
+          Location: {
+            Kind: SourceFile,
+            SourceSpan: {
+              Start: 194,
+              Length: 18
+            },
+            SourceTree: {
+              FilePath: TestDocument.cs,
+              Length: 495,
+              HasCompilationUnitRoot: {Scrubbed},
+              Options: {Scrubbed}
+            },
+            IsInSource: {Scrubbed},
+            IsInMetadata: {Scrubbed}
+          },
+          ParsedText: /* Macro TestMe */,
+          FilePath: TestDocument.cs,
+          Line: 8
+        },
+        End: {
+          Text: ,
+          Kind: SyntaxTrivia,
+          SyntaxTrivia: {Scrubbed},
+          RegionDirective: {Scrubbed},
+          Location: {
+            Kind: SourceFile,
+            SourceSpan: {
+              Start: 261,
+              Length: 14
+            },
+            SourceTree: {
+              FilePath: TestDocument.cs,
+              Length: 495,
+              HasCompilationUnitRoot: {Scrubbed},
+              Options: {Scrubbed}
+            },
+            IsInSource: {Scrubbed},
+            IsInMetadata: {Scrubbed}
+          }
+        }
+      },
+      {
+        Start: {
+          Text: TestMe ,
+          LocationTag: {
+            LineIdentifier: 10
+          },
+          Kind: SyntaxTrivia,
+          SyntaxTrivia: {Scrubbed},
+          RegionDirective: {Scrubbed},
+          Location: {
+            Kind: SourceFile,
+            SourceSpan: {
+              Start: 283,
+              Length: 22
+            },
+            SourceTree: {
+              FilePath: TestDocument.cs,
+              Length: 495,
+              HasCompilationUnitRoot: {Scrubbed},
+              Options: {Scrubbed}
+            },
+            IsInSource: {Scrubbed},
+            IsInMetadata: {Scrubbed}
+          },
+          ParsedText: /* Macro TestMe #10 */,
+          FilePath: TestDocument.cs,
+          Line: 12
+        },
+        End: {
+          Text: ,
+          LocationTag: {
+            LineIdentifier: 10
+          },
+          Kind: SyntaxTrivia,
+          SyntaxTrivia: {Scrubbed},
+          RegionDirective: {Scrubbed},
+          Location: {
+            Kind: SourceFile,
+            SourceSpan: {
+              Start: 371,
+              Length: 18
+            },
+            SourceTree: {
+              FilePath: TestDocument.cs,
+              Length: 495,
+              HasCompilationUnitRoot: {Scrubbed},
+              Options: {Scrubbed}
+            },
+            IsInSource: {Scrubbed},
+            IsInMetadata: {Scrubbed}
+          }
+        }
+      },
+      {
+        Start: {
+          Text: TestMe ,
+          LocationTag: {
+            LineIdentifier: 20
+          },
+          Kind: RegionDirectiveTriviaSyntax,
+          SyntaxTrivia: {Scrubbed},
+          RegionDirective: {Scrubbed},
+          Location: {
+            Kind: SourceFile,
+            SourceSpan: {
+              Start: 397,
+              Length: 24
+            },
+            SourceTree: {
+              FilePath: TestDocument.cs,
+              Length: 495,
+              HasCompilationUnitRoot: {Scrubbed},
+              Options: {Scrubbed}
+            },
+            IsInSource: {Scrubbed},
+            IsInMetadata: {Scrubbed}
+          },
+          ParsedText: #region Macro TestMe #20,
+          FilePath: TestDocument.cs,
+          Line: 16
+        },
+        End: {
+          Text: ,
+          Kind: RegionDirectiveTriviaSyntax,
+          SyntaxTrivia: {Scrubbed},
+          RegionDirective: {Scrubbed},
+          Location: {
+            Kind: SourceFile,
+            SourceSpan: {
+              Start: 478,
+              Length: 14
+            },
+            SourceTree: {
+              FilePath: TestDocument.cs,
+              Length: 495,
+              HasCompilationUnitRoot: {Scrubbed},
+              Options: {Scrubbed}
+            },
+            IsInSource: {Scrubbed},
+            IsInMetadata: {Scrubbed}
+          }
+        }
+      }
+    ]
+  }
+}

@@ -8,26 +8,40 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Brimborium.Macro.Parse;
 
-public class MacroParseRegions {
-    public static MacroParseRegionsResult ParseRegions(
+public sealed record class ParseRegionsResult(
+    DocumentRegionTree DocumentRegionTree,
+    RegionBlock? RegionBlockAtLocation,
+    string? Error
+    );
+
+public sealed record class DocumentRegionTree(
+    string FilePath,
+    List<RegionBlock> Tree
+    );
+
+public class MacroParserRegions {
+
+    public static ParseRegionsResult ParseRegions(
+        string filePath,
         SyntaxTree tree,
+        string? fullText,
         Location? locationToSearch,
         CancellationToken cancellationToken) {
-        var parser = new MacroParseRegions(locationToSearch);
-        return parser.parseRegionsImpl(tree, cancellationToken);
+        var parser = new MacroParserRegions(locationToSearch);
+        return parser.parseRegionsImpl(filePath, tree, fullText, cancellationToken);
     }
 
     private string? Error = default;
 
-    private List<RegionBlock> _Result = new();
-    private Stack<RegionBlock> _StackRegionBlock = new();
+    private readonly List<RegionBlock> _Result = new();
+    private readonly Stack<RegionBlock> _StackRegionBlock = new();
 
     private RegionBlock? _RegionBlockAtLocation = default;
     private RegionBlock? _CurrentRegionBlock = default;
     private Location? _LocationToSearch = default;
     private HashSet<Location> _HsKnownLocation = new();
 
-    private MacroParseRegions(Location? locationToSearch) {
+    private MacroParserRegions(Location? locationToSearch) {
         this._LocationToSearch = locationToSearch;
     }
 
@@ -99,11 +113,12 @@ public class MacroParseRegions {
         }
     }
 
-    private MacroParseRegionsResult parseRegionsImpl(
+    private ParseRegionsResult parseRegionsImpl(
+        string FilePath,
         SyntaxTree tree,
-
-        CancellationToken cancellationToken) {
-        string? fullText = default;
+        string? fullText = default,
+        CancellationToken cancellationToken = default
+        ) {
 
         var rootNode = tree.GetRoot();
 
@@ -118,9 +133,9 @@ public class MacroParseRegions {
             }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         foreach (var trivia in listSyntaxTrivia) {
-            //var span = syntaxTrivia.Span;
-            //var token = tree.GetRoot().FindToken(span.Start, true);
             var token = trivia.Token;
             var node = token.Parent;
             if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)) {
@@ -137,13 +152,16 @@ public class MacroParseRegions {
                                 continue;
                             }
                             var regionText = regionDirective.EndOfDirectiveToken.ToFullString().AsSpan();
-                            if (MacroParser.TryGetRegionBlockStart(regionText, out var macroText)) {
+                            if (MacroParser.TryGetRegionBlockStart(regionText, out var commentMacroText)) {
+                                MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
                                 if (this.addRegionStart(
-                                    new RegionStart(macroText.ToString(), regionDirective, location),
+                                    new RegionStart(macroText.ToString(), locationTag, regionDirective, location),
                                     location)) {
                                     continue;
                                 } else {
-                                    return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+                                    return new ParseRegionsResult(
+                                        new DocumentRegionTree(FilePath, this._Result),
+                                        this._RegionBlockAtLocation, this.Error);
                                 }
                             }
                         }
@@ -166,11 +184,11 @@ public class MacroParseRegions {
                             string regionText = (endRegionDirective.EndOfDirectiveToken.IsMissing)
                                 ? string.Empty
                                 : endRegionDirective.EndOfDirectiveToken.Text;
-                            if (MacroParser.TryGetRegionBlockEnd(regionText.AsSpan(), out var macroText)) {
-                                if (this.addRegionEnd(new RegionEnd(macroText.ToString(), endRegionDirective, location), location)) {
+                            if (MacroParser.TryGetRegionBlockEnd(regionText.AsSpan(), out var macroText, out var locationTag)) {
+                                if (this.addRegionEnd(new RegionEnd(macroText.ToString(), locationTag, endRegionDirective, location), location)) {
                                     continue;
                                 } else {
-                                    return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+                                    return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Result), this._RegionBlockAtLocation, this.Error);
                                 }
                             }
                         }
@@ -182,23 +200,25 @@ public class MacroParseRegions {
                     continue;
                 }
                 if (fullText is null) {
-                    fullText = tree.GetText().ToString() ?? string.Empty;
+                    fullText = tree.GetText(cancellationToken).ToString() ?? string.Empty;
                 }
                 ReadOnlySpan<char> commentText = fullText.AsSpan(trivia.FullSpan.Start, trivia.FullSpan.Length);
 
-                switch (MacroParser.TryGetMultiLineComment(commentText, out var macroText)) {
+                switch (MacroParser.TryGetMultiLineComment(commentText, out var commentMacroText)) {
                     case 1: {
-                        if (this.addRegionStart(new RegionStart(macroText.ToString(), trivia, location), location)) {
+                        MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
+                        if (this.addRegionStart(new RegionStart(macroText.ToString(), locationTag, trivia, location), location)) {
                             continue;
                         } else {
-                            return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+                            return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Result), this._RegionBlockAtLocation, this.Error);
                         }
                     }
                     case 2: {
-                        if (this.addRegionEnd(new RegionEnd(commentText.ToString(), trivia, location), location)) {
+                        MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
+                        if (this.addRegionEnd(new RegionEnd(macroText.ToString(), locationTag, trivia, location), location)) {
                             continue;
                         } else {
-                            return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+                            return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Result), this._RegionBlockAtLocation, this.Error);
                         }
                     }
                     default: continue;
@@ -299,13 +319,7 @@ public class MacroParseRegions {
         if (this._CurrentRegionBlock is not null) {
             this.Error = "No EndRegionDirectiveTrivia";
         }
-        return new MacroParseRegionsResult(this._Result, this._RegionBlockAtLocation, this.Error);
+        return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Result), this._RegionBlockAtLocation, this.Error);
     }
 }
 
-
-public sealed record class MacroParseRegionsResult(
-    List<RegionBlock> Result,
-    RegionBlock? RegionBlockAtLocation,
-    string? Error
-    );

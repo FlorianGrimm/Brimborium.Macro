@@ -21,9 +21,9 @@ using System.Text;
 using Xunit;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Testing;
+using Brimborium.Macro.GeneratorLibrary.Test;
 
 namespace Brimborium.Macro.Parse;
-
 public class MacroParserTests {
     [Fact]
     public void TrimLeftTextTest() {
@@ -175,6 +175,7 @@ public class MacroParserTests {
         Assert.Equal(true, MacroParser.EqualsLines("     a\r\n    b", "a\r\n b"));
         Assert.Equal(true, MacroParser.EqualsLines("     a\r\n    b\r\n", "a\r\n b"));
     }
+#if false
     //public static required string GetIsGenerated { get; set; }
     [Fact]
     public async Task Test01() {
@@ -202,7 +203,6 @@ internal partial class Data {
         var parseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.Latest, documentationMode: DocumentationMode.Parse, kind: SourceCodeKind.Regular);
 
         AdhocWorkspace adhocWorkspace = new AdhocWorkspace();
-        //var solution=adhocWorkspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
         var projectId = ProjectId.CreateNewId();
         var metadataReferences = new MetadataReference[]
                {
@@ -221,7 +221,7 @@ internal partial class Data {
             metadataReferences: metadataReferences);
         adhocWorkspace.AddProject(projectInfo);
 
-        var pathMacroAttribute = System.IO.Path.Combine(GetSolutionFolder(), @"src\Brimborium.Macro\MacroAttribute.cs");
+        var pathMacroAttribute = System.IO.Path.Combine(TestUtils.GetSolutionFolder(), @"src\Brimborium.Macro\MacroAttribute.cs");
         var sourceMacroAttribute = System.IO.File.ReadAllText(pathMacroAttribute);
 
         var documentMacroAttribute = adhocWorkspace.AddDocument(projectId, "MacroAttribute.cs", SourceText.From(sourceMacroAttribute));
@@ -244,23 +244,55 @@ internal partial class Data {
         var semanticModel = compliation.GetSemanticModel(syntaxTree);
         if (semanticModel is null) { throw new System.Exception("semanticModel is null"); }
 
-        var listRegionStart = MacroParser.AnalyzeSyntaxTree(syntaxTree, semanticModel).ToList();
+        var listRegionStart = MacroParserAnalyzer.AnalyzeSyntaxTree(syntaxTree, semanticModel).ToList();
         Assert.NotNull(listRegionStart);
         Assert.Equal(3, listRegionStart.Count());
     }
+#endif
+    [Fact]
+    public async Task TestSample001AnalyzeSyntaxTree() {
+        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
+            = await TestUtils.PrepareDocumentFromFile(
+                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
+        var listRegionStart = MacroParserAnalyzer.AnalyzeSyntaxTree(syntaxTree, semanticModel).ToList();
+        await Verify(listRegionStart, Defaults.VerifySettings);
+    }
 
-    private static string? _SolutionFolder;
-    private static string GetSolutionFolder([CallerFilePath] string? callerFilePath = null) {
-        if (_SolutionFolder is not null) {
-            return _SolutionFolder;
-        }
-        var directory = new System.IO.DirectoryInfo(callerFilePath ?? System.IO.Directory.GetCurrentDirectory());
-        while (directory != null && !System.IO.Directory.Exists(System.IO.Path.Combine(directory.FullName, ".git"))) {
-            directory = directory.Parent;
-        }
-        if (directory is null) {
-            throw new System.Exception("Solution folder not found.");
-        }
-        return _SolutionFolder = directory.FullName;
+    [Fact]
+    public async Task TestSample001ParseRegionsFull() {
+        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
+            = await TestUtils.PrepareDocumentFromFile(
+                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
+
+        var regionBlockTree = MacroParserRegions.ParseRegions("", syntaxTree, sourceCode, null, CancellationToken.None);
+
+        await Verify(regionBlockTree, Defaults.VerifySettings);
+    }
+
+    [Fact]
+    public async Task TestSample001ParseRegionsPartial() {
+        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
+            = await TestUtils.PrepareDocumentFromFile(
+                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
+
+        var listRegionStart = MacroParserAnalyzer.AnalyzeSyntaxTree(syntaxTree, semanticModel).ToList();
+        if (0 == listRegionStart.Count) { throw new Exception("listRegionStart is empty"); }
+
+        var regionStart = listRegionStart[0];
+        if (!(regionStart.TryGetLocation(out var location))) { throw new Exception("regionStart.TryGetLocation failed"); }
+        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, sourceCode, null, CancellationToken.None);
+        await Verify(regionBlockTree, Defaults.VerifySettings);
+    }
+
+    [Fact]
+    public async Task TestSample001ParseFixLocationTag() {
+        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
+            = await TestUtils.PrepareDocumentFromFile(
+                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
+
+        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, sourceCode, null, CancellationToken.None);
+
+        var documentRegionTree = MacroUpdate.UpdateLocationTag(regionBlockTree.DocumentRegionTree);
+        await Verify(documentRegionTree, Defaults.VerifySettings);
     }
 }

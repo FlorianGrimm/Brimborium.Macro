@@ -22,6 +22,7 @@ public class Program {
 
         app.UseAuthorization();
 
+        /*
         var summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -38,6 +39,7 @@ public class Program {
             return forecast;
         })
         .WithName("GetWeatherForecast");
+        */
 
         app.Run();
     }

@@ -11,9 +11,6 @@ using System.Threading.Tasks;
 
 namespace Brimborium.Macro {
     public class BrainstormIdea {
-        private static PropertyInfo? _PropertyInfoDocumentState;
-        private static Type? _TypeDocumentState;
-
         private readonly SolutionService _SolutionService;
         private Solution? _Solution;
         private ImmutableDictionary<ProjectId, ProjectState> _CachedProject = ImmutableDictionary<ProjectId, ProjectState>.Empty;

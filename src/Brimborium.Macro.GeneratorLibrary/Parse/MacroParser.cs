@@ -8,80 +8,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Brimborium.Macro.Parse;
-
-public static class MacroParser {
+    public static class MacroParser {
     public static readonly string TextSlashStar = "/*";
     public static readonly string TextStarSlash = "*/";
     public static readonly string TextMacro = "Macro";
     public static readonly string TextEndMacro = "EndMacro";
-
-    public static IEnumerable<RegionStart> AnalyzeSyntaxTree(
-        SyntaxTree tree, 
-        SemanticModel semanticModel) {
-        string? fullText = default;
-        HashSet<Location> hsKnownLocation = new();
-        var sourceCode = tree.GetText().ToString();
-        if (!sourceCode.Contains("Macro")) {
-            yield break;
-        }
-        var rootNode = tree.GetRoot();
-        foreach (var nodeOrToken in rootNode.DescendantNodesAndTokensAndSelf()) {
-            if (nodeOrToken.AsNode() is { } node) {
-                if (node.IsKind(SyntaxKind.Attribute)
-                    && node is AttributeSyntax attributeSyntax) {
-                    /*
-                    attributeSyntax.Name.GetType().FullName
-                    "Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax"
-
-                    attributeSyntax.Name.GetText().ToString()
-                    "Brimborium.Macro.Macro"
-
-                     attributeSyntax.ArgumentList.Arguments[0].GetType().FullName
-                    "Microsoft.CodeAnalysis.CSharp.Syntax.AttributeArgumentSyntax"
-                     */
-                    continue;
-                } else {
-                    foreach (var trivia in node.GetLeadingTrivia()) {
-                        if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)) {
-                            if (fullText is null) {
-                                fullText = tree.GetText().ToString() ?? string.Empty;
-                            }
-                            ReadOnlySpan<char> commentText = fullText.AsSpan(trivia.FullSpan.Start, trivia.FullSpan.Length);
-
-                            if (1 == MacroParser.TryGetMultiLineComment(commentText, out var macroText)) {
-                                var location = trivia.GetLocation();
-                                if (hsKnownLocation.Add(location)) {
-                                    yield return new RegionStart(macroText.ToString(), trivia, location);
-                                } else {
-                                    continue;
-                                }
-                            }
-
-                        } else if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)) {
-                            if (trivia.IsDirective) {
-                                var location = trivia.GetLocation();
-                                if (hsKnownLocation.Contains(location)) {
-                                    continue;
-                                } 
-                                var structure = (DirectiveTriviaSyntax)trivia.GetStructure()!;
-                                if (structure is RegionDirectiveTriviaSyntax regionDirective) {
-                                    if (!regionDirective.EndOfDirectiveToken.IsMissing) {
-                                        var regionText = regionDirective.EndOfDirectiveToken.ToFullString().AsSpan();
-                                        if (MacroParser.TryGetRegionBlockStart(regionText, out var macroText)) {
-                                            location = regionDirective.GetLocation();
-                                            if (hsKnownLocation.Add(location)) {
-                                                yield return new RegionStart(macroText.ToString(), regionDirective, location);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     public static int TryGetMultiLineComment(ReadOnlySpan<char> commentText, out ReadOnlySpan<char> macroText) {
         MacroParser.TrimLeftWhitespaceWithNewLine(ref commentText);
@@ -137,15 +68,16 @@ public static class MacroParser {
         return false;
     }
 
-    public static bool TryGetRegionBlockEnd(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText) {
+    public static bool TryGetRegionBlockEnd(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText, out LocationTag locationTag) {
         MacroParser.TrimLeftWhitespaceNoNewLine(ref regionText);
         if (MacroParser.TrimLeftText(ref regionText, MacroParser.TextEndMacro.AsSpan())) {
             MacroParser.TrimLeftWhitespaceNoNewLine(ref regionText);
             MacroParser.TrimRightWhitespaceNoNewLine(ref regionText);
-            macroText = regionText;
+            MacroParser.SplitLocationTag(regionText, out macroText, out locationTag);
             return true;
         }
         macroText = string.Empty.AsSpan();
+        locationTag = new LocationTag();
         return true;
     }
 
@@ -284,6 +216,7 @@ public static class MacroParser {
 
     private static char[] _NewLines = "\r\n".ToCharArray();
     private static char[] _Whitespaces = "\r\n\t ".ToCharArray();
+
     public static bool EqualsLines(string stringPrevMacroContent, string stringNextMacroContent) {
         if (string.Equals(stringPrevMacroContent, stringNextMacroContent, StringComparison.Ordinal)) {
             return true;
@@ -337,5 +270,28 @@ public static class MacroParser {
         }
 
         return spanPrevMacroContent.IsEmpty && spanNextMacroContent.IsEmpty;
+    }
+
+    public static bool SplitLocationTag(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText, out LocationTag locationTag) {
+        // split the regionText into macroText and locationTag - the separator is the last # character.
+        int index = regionText.LastIndexOf('#');
+        if (0<=index) {
+            macroText = regionText.Slice(0, index);
+            var locationText = regionText.Slice(index + 1);
+            locationTag = ParseLocationTag(locationText);
+            return true;
+        }
+        // not found
+        macroText = regionText;
+        locationTag = new LocationTag();
+        return false;
+    }
+
+    public static LocationTag ParseLocationTag(ReadOnlySpan<char> locationText) {
+        if (int.TryParse(locationText, out int line)) {
+            return new LocationTag(null, line);
+        } else { 
+            return new LocationTag(null, 0);
+        }
     }
 }
