@@ -1,7 +1,7 @@
 ﻿{
   DocumentRegionTree: {
-    FilePath: ,
-    Result: [
+    FilePath: TestDocument.cs,
+    Tree: [
       {
         Start: {
           Text: TestMe,

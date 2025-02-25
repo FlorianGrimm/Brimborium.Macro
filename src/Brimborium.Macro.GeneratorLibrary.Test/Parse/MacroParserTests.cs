@@ -264,7 +264,7 @@ internal partial class Data {
             = await TestUtils.PrepareDocumentFromFile(
                 @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
 
-        var regionBlockTree = MacroParserRegions.ParseRegions("", syntaxTree, sourceCode, null, CancellationToken.None);
+        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, sourceCode, null, CancellationToken.None);
 
         await Verify(regionBlockTree, Defaults.VerifySettings);
     }

@@ -34,9 +34,13 @@ public static class MacroUpdate {
 
     private static RegionBlock UpdateLocationTag(RegionBlock regionBlock) {
         if (regionBlock.Start.LocationTag.LineIdentifier != regionBlock.Start.Line) {
-            regionBlock = regionBlock.CloneFlat();
-            regionBlock.LocationTag = regionBlock.LocationTag with {
-                LineIdentifier = regionBlock.Start.Line
+            regionBlock = regionBlock with { 
+                LocationTag = (regionBlock.LocationTag is { } locationTag) 
+                ?   locationTag with {
+                    LineIdentifier = regionBlock.Start.Line
+                }:new LocationTag(
+                    FilePath: null, 
+                    LineIdentifier: regionBlock.Start.Line)
             };
         }
         return regionBlock;

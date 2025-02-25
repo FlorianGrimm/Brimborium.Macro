@@ -16,42 +16,56 @@ namespace Brimborium.Macro.Parse;
 /// <summary>
 /// Describes a region block in a source file - a start and a end optionally children within.
 /// </summary>
-public class RegionBlock {
+/// <param name="Start">The start information of the region block.</param>
+/// <param name="Children">The list of child region blocks.</param>
+/// <param name="End">The end information of the region block.</param>
+/// <param name="LocationTag">the location tag (#locationtag)</param>
+/// <param name="Error">The error message associated with the region block.</param>
+public record class RegionBlock(
+    RegionStart Start,
+    List<RegionBlock> Children,
+    RegionEnd? End,
+    LocationTag? LocationTag,
+    string? Error
+    ) {
+    public RegionBlock(RegionStart Start) 
+        : this(Start, [], default, default, default){
+    }
     /// <summary>
     /// Gets or sets the error message associated with the region block.
     /// </summary>
-    public string? Error { get; set; }
+    //public string? Error { get; set; }
 
     /// <summary>
     /// Gets or sets the start information of the region block.
     /// </summary>
-    public RegionStart Start { get; set; }
+    //public RegionStart Start { get; set; }
 
     /// <summary>
     /// Gets the list of child region blocks.
     /// </summary>
-    public List<RegionBlock> Children { get; } = new();
+    //public List<RegionBlock> Children { get; } = new();
 
     /// <summary>
     /// Gets or sets the end information of the region block.
     /// </summary>
-    public RegionEnd End { get; set; }
+    //public RegionEnd End { get; set; }
 
     /// <summary>
     /// Gets or sets the line identifier of the region block.
     /// </summary>
-    public LocationTag LocationTag { get; set; }
+    //public LocationTag LocationTag { get; set; }
 
-    public RegionBlock CloneFlat() {
-        var result = new RegionBlock() {
-            Error = this.Error,
-            Start = this.Start,
-            End = this.End,
-            LocationTag = this.LocationTag
-        };
-        result.Children.AddRange(this.Children);
-        return result;
-    }
+    //public RegionBlock CloneFlat() {
+    //    var result = new RegionBlock() {
+    //        Error = this.Error,
+    //        Start = this.Start,
+    //        End = this.End,
+    //        LocationTag = this.LocationTag
+    //    };
+    //    result.Children.AddRange(this.Children);
+    //    return result;
+    //}
 }
 
 public record struct LocationTag(

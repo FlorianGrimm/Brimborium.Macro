@@ -33,15 +33,18 @@ public class MacroParserRegions {
 
     private string? Error = default;
 
-    private readonly List<RegionBlock> _Result = new();
+    private readonly RegionBlock _Root;
     private readonly Stack<RegionBlock> _StackRegionBlock = new();
+    private RegionBlock _CurrentRegionBlock;
 
     private RegionBlock? _RegionBlockAtLocation = default;
-    private RegionBlock? _CurrentRegionBlock = default;
     private Location? _LocationToSearch = default;
     private HashSet<Location> _HsKnownLocation = new();
 
     private MacroParserRegions(Location? locationToSearch) {
+        this._Root = new RegionBlock(new RegionStart("Root", new LocationTag(), ParserNodeOrTriviaKind.None, null, null, null));
+        //this._StackRegionBlock.Push(this._Root);
+        this._CurrentRegionBlock = this._Root;
         this._LocationToSearch = locationToSearch;
     }
 
@@ -58,16 +61,17 @@ public class MacroParserRegions {
                 return true;
             } else {
                 this._HsKnownLocation.Add(location);
-                var regionBlock = new RegionBlock() { Start = regionStart };
+                var regionBlock = new RegionBlock(regionStart);
 
-                if (this._CurrentRegionBlock is not null) {
-                    this._CurrentRegionBlock.Children.Add(regionBlock);
-                }
+                //if (this._CurrentRegionBlock is not null) {
+                //    this._CurrentRegionBlock.Children.Add(regionBlock);
+                //}
+                //this._CurrentRegionBlock = regionBlock;
+                //if (this._StackRegionBlock.Count == 0) {
+                //    this._Result.Add(regionBlock);
+                //}
+                this._StackRegionBlock.Push(this._CurrentRegionBlock);
                 this._CurrentRegionBlock = regionBlock;
-                if (this._StackRegionBlock.Count == 0) {
-                    this._Result.Add(regionBlock);
-                }
-                this._StackRegionBlock.Push(regionBlock);
                 if (this._LocationToSearch is { } locationToSearch
                     && locationToSearch.Equals(location)) {
                     this._RegionBlockAtLocation = regionBlock;
@@ -97,7 +101,22 @@ public class MacroParserRegions {
         } else if (!this._HsKnownLocation.Add(location)) {
             return true;
         } else {
-            this._CurrentRegionBlock.End = regionEnd;
+            var currentRegionBlock = this._CurrentRegionBlock;
+            var currentRegionBlockEnd = currentRegionBlock with {
+                End = regionEnd
+            };
+
+            if (0 == this._StackRegionBlock.Count) {
+                this.Error = "No StackRegionBlock";
+                return false;
+            }
+
+            var currentRegionBlockNext = this._StackRegionBlock.Pop();
+            this._CurrentRegionBlock = currentRegionBlockNext;
+            currentRegionBlockNext.Children.Add(currentRegionBlockEnd);
+
+            return true;
+            /*
             if (0 < this._StackRegionBlock.Count) {
                 this._StackRegionBlock.Pop();
                 if (0 < this._StackRegionBlock.Count) {
@@ -110,6 +129,7 @@ public class MacroParserRegions {
                 this.Error = "No StackRegionBlock"; // Cannot be...
                 return false;
             }
+            */
         }
     }
 
@@ -160,7 +180,7 @@ public class MacroParserRegions {
                                     continue;
                                 } else {
                                     return new ParseRegionsResult(
-                                        new DocumentRegionTree(FilePath, this._Result),
+                                        new DocumentRegionTree(FilePath, this._Root.Children),
                                         this._RegionBlockAtLocation, this.Error);
                                 }
                             }
@@ -188,7 +208,7 @@ public class MacroParserRegions {
                                 if (this.addRegionEnd(new RegionEnd(macroText.ToString(), locationTag, endRegionDirective, location), location)) {
                                     continue;
                                 } else {
-                                    return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Result), this._RegionBlockAtLocation, this.Error);
+                                    return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Root.Children), this._RegionBlockAtLocation, this.Error);
                                 }
                             }
                         }
@@ -210,7 +230,7 @@ public class MacroParserRegions {
                         if (this.addRegionStart(new RegionStart(macroText.ToString(), locationTag, trivia, location), location)) {
                             continue;
                         } else {
-                            return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Result), this._RegionBlockAtLocation, this.Error);
+                            return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Root.Children), this._RegionBlockAtLocation, this.Error);
                         }
                     }
                     case 2: {
@@ -218,7 +238,7 @@ public class MacroParserRegions {
                         if (this.addRegionEnd(new RegionEnd(macroText.ToString(), locationTag, trivia, location), location)) {
                             continue;
                         } else {
-                            return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Result), this._RegionBlockAtLocation, this.Error);
+                            return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Root.Children), this._RegionBlockAtLocation, this.Error);
                         }
                     }
                     default: continue;
@@ -319,7 +339,7 @@ public class MacroParserRegions {
         if (this._CurrentRegionBlock is not null) {
             this.Error = "No EndRegionDirectiveTrivia";
         }
-        return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Result), this._RegionBlockAtLocation, this.Error);
+        return new ParseRegionsResult(new DocumentRegionTree(FilePath, this._Root.Children), this._RegionBlockAtLocation, this.Error);
     }
 }
 
