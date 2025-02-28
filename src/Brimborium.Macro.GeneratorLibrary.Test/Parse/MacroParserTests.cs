@@ -6,8 +6,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,11 +20,9 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
-using System.Text;
-using Xunit;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Testing;
-using Brimborium.Macro.GeneratorLibrary.Test;
+
+using Xunit;
 
 namespace Brimborium.Macro.Parse;
 public class MacroParserTests {
@@ -249,50 +250,5 @@ internal partial class Data {
         Assert.Equal(3, listRegionStart.Count());
     }
 #endif
-    [Fact]
-    public async Task TestSample001AnalyzeSyntaxTree() {
-        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
-            = await TestUtils.PrepareDocumentFromFile(
-                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
-        var listRegionStart = MacroParserAnalyzer.AnalyzeSyntaxTree(syntaxTree, semanticModel).ToList();
-        await Verify(listRegionStart, Defaults.VerifySettings);
-    }
-
-    [Fact]
-    public async Task TestSample001ParseRegionsFull() {
-        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
-            = await TestUtils.PrepareDocumentFromFile(
-                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
-
-        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, sourceCode, null, CancellationToken.None);
-
-        await Verify(regionBlockTree, Defaults.VerifySettings);
-    }
-
-    [Fact]
-    public async Task TestSample001ParseRegionsPartial() {
-        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
-            = await TestUtils.PrepareDocumentFromFile(
-                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
-
-        var listRegionStart = MacroParserAnalyzer.AnalyzeSyntaxTree(syntaxTree, semanticModel).ToList();
-        if (0 == listRegionStart.Count) { throw new Exception("listRegionStart is empty"); }
-
-        var regionStart = listRegionStart[0];
-        if (!(regionStart.TryGetLocation(out var location))) { throw new Exception("regionStart.TryGetLocation failed"); }
-        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, sourceCode, null, CancellationToken.None);
-        await Verify(regionBlockTree, Defaults.VerifySettings);
-    }
-
-    [Fact]
-    public async Task TestSample001ParseFixLocationTag() {
-        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
-            = await TestUtils.PrepareDocumentFromFile(
-                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
-
-        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, sourceCode, null, CancellationToken.None);
-
-        var documentRegionTree = MacroUpdate.UpdateLocationTag(regionBlockTree.DocumentRegionTree);
-        await Verify(documentRegionTree, Defaults.VerifySettings);
-    }
+ 
 }

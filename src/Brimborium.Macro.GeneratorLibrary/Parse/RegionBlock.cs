@@ -6,10 +6,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Primitives;
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
+using System.Text;
 
 namespace Brimborium.Macro.Parse;
 
@@ -19,58 +21,136 @@ namespace Brimborium.Macro.Parse;
 /// <param name="Start">The start information of the region block.</param>
 /// <param name="Children">The list of child region blocks.</param>
 /// <param name="End">The end information of the region block.</param>
-/// <param name="LocationTag">the location tag (#locationtag)</param>
 /// <param name="Error">The error message associated with the region block.</param>
 public record class RegionBlock(
     RegionStart Start,
     List<RegionBlock> Children,
     RegionEnd? End,
-    LocationTag? LocationTag,
     string? Error
     ) {
-    public RegionBlock(RegionStart Start) 
-        : this(Start, [], default, default, default){
+    public RegionBlock(RegionStart Start)
+        : this(Start, [], default, default) {
     }
-    /// <summary>
-    /// Gets or sets the error message associated with the region block.
-    /// </summary>
-    //public string? Error { get; set; }
 
-    /// <summary>
-    /// Gets or sets the start information of the region block.
-    /// </summary>
-    //public RegionStart Start { get; set; }
+    public void AppendPrefix(string sourceCode, ref int pos, StringBuilder sbOut) {
+        if (this.Start.TryGetLocation(out var startLocation)) {
+            var startSourceSpan = startLocation.SourceSpan;
+            int length = startSourceSpan.Start - pos;
+            if (0 < length) {
+                sbOut.Append(sourceCode.AsSpan(pos, length));
+            }
+            pos += startSourceSpan.Length;
+        }
+    }
+    public void Generate(string sourceCode, ref int pos, StringBuilder sbOut) {
+        if (this.Start.Kind == ParserNodeOrTriviaKind.SyntaxTrivia) {
+            sbOut.Append("/* Macro ");
+            var startText=this.Start.Text.AsSpan();
+            MacroParser.TrimLeftWhitespaceNoNewLine(ref startText);
+            MacroParser.TrimRightWhitespaceNoNewLine(ref startText);
+            sbOut.Append(startText);
+            this.Start.LocationTag.Generate(sbOut);
+            sbOut.Append(" */");
 
-    /// <summary>
-    /// Gets the list of child region blocks.
-    /// </summary>
-    //public List<RegionBlock> Children { get; } = new();
+            if (0 == this.Children.Count) {
+                // insert content
+                if (this.Start.TryGetLocation(out var startLocation)
+                    && this.End is { } end
+                    && end.TryGetLocation(out var endLocation)) {
+                    sbOut.Append(sourceCode.AsSpan(
+                        startLocation.SourceSpan.End,
+                        endLocation.SourceSpan.Start - startLocation.SourceSpan.End));
+                }
+            } else {
+                // insert content until the first child
+                throw new NotImplementedException("TODO");
+            }
 
-    /// <summary>
-    /// Gets or sets the end information of the region block.
-    /// </summary>
-    //public RegionEnd End { get; set; }
+            sbOut.Append("/* EndMacro");
+            this.End?.LocationTag.Generate(sbOut);
+            sbOut.Append(" */");
 
-    /// <summary>
-    /// Gets or sets the line identifier of the region block.
-    /// </summary>
-    //public LocationTag LocationTag { get; set; }
+        } else if (this.Start.Kind == ParserNodeOrTriviaKind.RegionDirectiveTriviaSyntax) {
+            sbOut.Append("#region Macro ");
+            var startText=this.Start.Text.AsSpan();
+            MacroParser.TrimLeftWhitespaceNoNewLine(ref startText);
+            MacroParser.TrimRightWhitespaceNoNewLine(ref startText);
+            sbOut.Append(startText);
+            this.Start.LocationTag.Generate(sbOut);
+            sbOut.AppendLine();
 
-    //public RegionBlock CloneFlat() {
-    //    var result = new RegionBlock() {
-    //        Error = this.Error,
-    //        Start = this.Start,
-    //        End = this.End,
-    //        LocationTag = this.LocationTag
-    //    };
-    //    result.Children.AddRange(this.Children);
-    //    return result;
-    //}
+            if (0 == this.Children.Count) {
+                // insert content
+                if (this.Start.TryGetLocation(out var startLocation)
+                    && this.End is { } end
+                    && end.TryGetLocation(out var endLocation)) {
+                    sbOut.Append(sourceCode.AsSpan(
+                        startLocation.SourceSpan.End,
+                        endLocation.SourceSpan.Start - startLocation.SourceSpan.End));
+                }
+            } else {
+                // insert content until the first child
+                throw new NotImplementedException("TODO");
+            }
+
+            sbOut.Append("#endregion");
+            this.End?.LocationTag.Generate(sbOut);
+            sbOut.AppendLine();
+        } else if (this.Start.Kind == ParserNodeOrTriviaKind.AttributeSyntax) {
+        } else {
+        }
+        {
+            if (this.End is { } end
+                && end.TryGetLocation(out var endLocation)) {
+                pos = endLocation.SourceSpan.End;
+            }
+        }
+    }
+
+    public RegionBlock WithStartLocationTag(LocationTag locationTag) {
+        if (this.Start.LocationTag.Equals(locationTag)) {
+            return this;
+        } else {
+            return this with {
+                Start = this.Start with {
+                    LocationTag = locationTag
+                }
+            };
+        }
+    }
+
+    public RegionBlock WithEndLocationTag(LocationTag locationTag) {
+        if (this.End is { } end) {
+            if (end.LocationTag.Equals(locationTag)) {
+                return this;
+            } else {
+                return this with {
+                    End = end with {
+                        LocationTag = locationTag
+                    }
+                };
+            }
+        } else {
+            return this;
+        }
+    }
 }
 
 public record struct LocationTag(
     string? FilePath,
-    int LineIdentifier);
+    int LineIdentifier) {
+    public void Generate(StringBuilder sbOut) {
+        if (this.FilePath is { } filePath && 0 < this.LineIdentifier) {
+            sbOut.Append(" #");
+            sbOut.Append(filePath);
+        } else if (this.FilePath is null && 0 < this.LineIdentifier) {
+            sbOut.Append(" #");
+            sbOut.Append(this.LineIdentifier);
+        }
+    }
+
+    public bool DoesExists() => (0 < this.LineIdentifier);
+}
 
 /// <summary>
 /// Describes a region syntax used.

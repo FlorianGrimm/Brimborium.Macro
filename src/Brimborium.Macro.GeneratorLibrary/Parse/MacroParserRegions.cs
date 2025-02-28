@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using System.Text;
+
 namespace Brimborium.Macro.Parse;
 
 public sealed record class ParseRegionsResult(
@@ -17,7 +19,21 @@ public sealed record class ParseRegionsResult(
 public sealed record class DocumentRegionTree(
     string FilePath,
     List<RegionBlock> Tree
-    );
+    ) {
+
+    public void Generate(string sourceCode, StringBuilder sbOut) {
+        int pos = 0;
+        this.Generate(sourceCode, ref pos, sbOut);
+        sbOut.Append(sourceCode.AsSpan(pos));
+    }
+
+    public void Generate(string sourceCode, ref int pos, StringBuilder sbOut) {
+        foreach(var regionBlock in this.Tree) {
+            regionBlock.AppendPrefix(sourceCode, ref pos, sbOut);
+            regionBlock.Generate(sourceCode, ref pos, sbOut);
+        }
+    }
+}
 
 public class MacroParserRegions {
 
