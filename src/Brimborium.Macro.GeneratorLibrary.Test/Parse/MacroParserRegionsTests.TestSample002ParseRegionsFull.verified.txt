@@ -4,44 +4,12 @@
     Tree: [
       {
         Start: {
-          Kind: AttributeSyntax,
-          Location: {
-            Kind: SourceFile,
-            SourceSpan: {
-              Start: 38,
-              Length: 457
-            },
-            SourceTree: {
-              FilePath: TestDocument.cs,
-              Length: 495
-            }
-          },
-          FilePath: TestDocument.cs,
-          Line: 3
-        },
-        End: {
-          Kind: AttributeSyntax,
-          Location: {
-            Kind: SourceFile,
-            SourceSpan: {
-              Start: 38,
-              Length: 457
-            },
-            SourceTree: {
-              FilePath: TestDocument.cs,
-              Length: 495
-            }
-          }
-        }
-      },
-      {
-        Start: {
           Text: TestMe,
           Kind: SyntaxTrivia,
           SyntaxTrivia: {
             Kind: MultiLineCommentTrivia,
             Span: {
-              Start: 194,
+              Start: 127,
               Length: 18
             },
             ToString: /* Macro TestMe */
@@ -49,17 +17,17 @@
           Location: {
             Kind: SourceFile,
             SourceSpan: {
-              Start: 194,
+              Start: 127,
               Length: 18
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495
+              Length: 535
             }
           },
           ParsedText: /* Macro TestMe */,
           FilePath: TestDocument.cs,
-          Line: 8
+          Line: 6
         },
         End: {
           Text: ,
@@ -67,7 +35,7 @@
           SyntaxTrivia: {
             Kind: MultiLineCommentTrivia,
             Span: {
-              Start: 261,
+              Start: 194,
               Length: 14
             },
             ToString: /* EndMacro */
@@ -75,12 +43,12 @@
           Location: {
             Kind: SourceFile,
             SourceSpan: {
-              Start: 261,
+              Start: 194,
               Length: 14
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495
+              Length: 535
             }
           }
         }
@@ -95,7 +63,7 @@
           SyntaxTrivia: {
             Kind: MultiLineCommentTrivia,
             Span: {
-              Start: 283,
+              Start: 216,
               Length: 22
             },
             ToString: /* Macro TestMe #10 */
@@ -103,17 +71,17 @@
           Location: {
             Kind: SourceFile,
             SourceSpan: {
-              Start: 283,
+              Start: 216,
               Length: 22
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495
+              Length: 535
             }
           },
           ParsedText: /* Macro TestMe #10 */,
           FilePath: TestDocument.cs,
-          Line: 12
+          Line: 10
         },
         End: {
           Text: ,
@@ -124,7 +92,7 @@
           SyntaxTrivia: {
             Kind: MultiLineCommentTrivia,
             Span: {
-              Start: 371,
+              Start: 304,
               Length: 18
             },
             ToString: /* EndMacro #10 */
@@ -132,12 +100,12 @@
           Location: {
             Kind: SourceFile,
             SourceSpan: {
-              Start: 371,
+              Start: 304,
               Length: 18
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495
+              Length: 535
             }
           }
         }
@@ -152,7 +120,7 @@
           RegionDirective: {
             Kind: RegionDirectiveTrivia,
             Span: {
-              Start: 397,
+              Start: 330,
               Length: 24
             },
             ToString: #region Macro TestMe #20
@@ -160,25 +128,81 @@
           Location: {
             Kind: SourceFile,
             SourceSpan: {
-              Start: 397,
+              Start: 330,
               Length: 24
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495
+              Length: 535
             }
           },
           ParsedText: #region Macro TestMe #20,
           FilePath: TestDocument.cs,
-          Line: 16
+          Line: 14
         },
+        Children: [
+          {
+            Start: {
+              Text: TestMe ,
+              LocationTag: {
+                LineIdentifier: 30
+              },
+              Kind: RegionDirectiveTriviaSyntax,
+              RegionDirective: {
+                Kind: RegionDirectiveTrivia,
+                Span: {
+                  Start: 414,
+                  Length: 24
+                },
+                ToString: #region Macro TestMe #30
+              },
+              Location: {
+                Kind: SourceFile,
+                SourceSpan: {
+                  Start: 414,
+                  Length: 24
+                },
+                SourceTree: {
+                  FilePath: TestDocument.cs,
+                  Length: 535
+                }
+              },
+              ParsedText: #region Macro TestMe #30,
+              FilePath: TestDocument.cs,
+              Line: 17
+            },
+            End: {
+              Text: ,
+              Kind: RegionDirectiveTriviaSyntax,
+              RegionDirective: {
+                Kind: EndRegionDirectiveTrivia,
+                Span: {
+                  Start: 496,
+                  Length: 14
+                },
+                ToString: #endregion #30
+              },
+              Location: {
+                Kind: SourceFile,
+                SourceSpan: {
+                  Start: 496,
+                  Length: 14
+                },
+                SourceTree: {
+                  FilePath: TestDocument.cs,
+                  Length: 535
+                }
+              }
+            }
+          }
+        ],
         End: {
           Text: ,
           Kind: RegionDirectiveTriviaSyntax,
           RegionDirective: {
             Kind: EndRegionDirectiveTrivia,
             Span: {
-              Start: 478,
+              Start: 518,
               Length: 14
             },
             ToString: #endregion #20
@@ -186,12 +210,12 @@
           Location: {
             Kind: SourceFile,
             SourceSpan: {
-              Start: 478,
+              Start: 518,
               Length: 14
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495
+              Length: 535
             }
           }
         }

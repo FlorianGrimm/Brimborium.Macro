@@ -1,6 +1,8 @@
 ﻿namespace Brimborium.Macro.Sample;
 
-internal partial class Sample001 {
+[Brimborium.Macro.Macro("hugo")]
+internal partial class Sample011 {
+    [Brimborium.Macro.Macro("hugo")]
     public required string Name { get; set; }
 
     /* Macro TestMe */

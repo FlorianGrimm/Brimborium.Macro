@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Brimborium.Macro;
 using Brimborium.Macro.Parse;
+using Brimborium.Macro.Model;
 
 namespace Brimborium.Macro.Commands;
 public static class RegionBlockUpdate {
@@ -67,6 +68,13 @@ public static class RegionBlockUpdate {
         }
         return regionBlock;
     }
+
+    /*
+    public static DocumentRegionTree UpdateInformation(DocumentRegionTree documentRegionTree) {
+        documentRegionTree.Tree
+    }
+    */
+
 }
 
 public record UpdateLocationTagOptions(

@@ -1,6 +1,6 @@
 ﻿namespace Brimborium.Macro.Sample;
 
-internal partial class Sample001 {
+internal partial class Sample002 {
     public required string Name { get; set; }
 
     /* Macro TestMe */
@@ -12,6 +12,11 @@ internal partial class Sample001 {
     /* EndMacro #10 */
 
     #region Macro TestMe #20
-    public required string Nickname { get; set; }
+    public required string Nickname1 { get; set; }
+
+    #region Macro TestMe #30
+    public required string Nickname2 { get; set; }
+    #endregion #30
+
     #endregion #20
 }

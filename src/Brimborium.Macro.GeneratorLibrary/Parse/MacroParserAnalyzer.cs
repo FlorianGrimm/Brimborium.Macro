@@ -2,6 +2,8 @@
 #pragma warning disable IDE0057
 #pragma warning disable IDE1006 // Naming Styles
 
+using Brimborium.Macro.Model;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

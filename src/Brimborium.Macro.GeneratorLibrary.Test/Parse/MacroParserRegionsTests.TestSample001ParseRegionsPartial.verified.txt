@@ -4,10 +4,48 @@
     Tree: [
       {
         Start: {
+          Kind: AttributeSyntax,
+          Location: {
+            Kind: SourceFile,
+            SourceSpan: {
+              Start: 38,
+              Length: 457
+            },
+            SourceTree: {
+              FilePath: TestDocument.cs,
+              Length: 495
+            }
+          },
+          FilePath: TestDocument.cs,
+          Line: 3
+        },
+        End: {
+          Kind: AttributeSyntax,
+          Location: {
+            Kind: SourceFile,
+            SourceSpan: {
+              Start: 38,
+              Length: 457
+            },
+            SourceTree: {
+              FilePath: TestDocument.cs,
+              Length: 495
+            }
+          }
+        }
+      },
+      {
+        Start: {
           Text: TestMe,
           Kind: SyntaxTrivia,
-          SyntaxTrivia: {Scrubbed},
-          RegionDirective: {Scrubbed},
+          SyntaxTrivia: {
+            Kind: MultiLineCommentTrivia,
+            Span: {
+              Start: 194,
+              Length: 18
+            },
+            ToString: /* Macro TestMe */
+          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -16,12 +54,8 @@
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495,
-              HasCompilationUnitRoot: {Scrubbed},
-              Options: {Scrubbed}
-            },
-            IsInSource: {Scrubbed},
-            IsInMetadata: {Scrubbed}
+              Length: 495
+            }
           },
           ParsedText: /* Macro TestMe */,
           FilePath: TestDocument.cs,
@@ -30,8 +64,14 @@
         End: {
           Text: ,
           Kind: SyntaxTrivia,
-          SyntaxTrivia: {Scrubbed},
-          RegionDirective: {Scrubbed},
+          SyntaxTrivia: {
+            Kind: MultiLineCommentTrivia,
+            Span: {
+              Start: 261,
+              Length: 14
+            },
+            ToString: /* EndMacro */
+          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -40,12 +80,8 @@
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495,
-              HasCompilationUnitRoot: {Scrubbed},
-              Options: {Scrubbed}
-            },
-            IsInSource: {Scrubbed},
-            IsInMetadata: {Scrubbed}
+              Length: 495
+            }
           }
         }
       },
@@ -56,8 +92,14 @@
             LineIdentifier: 10
           },
           Kind: SyntaxTrivia,
-          SyntaxTrivia: {Scrubbed},
-          RegionDirective: {Scrubbed},
+          SyntaxTrivia: {
+            Kind: MultiLineCommentTrivia,
+            Span: {
+              Start: 283,
+              Length: 22
+            },
+            ToString: /* Macro TestMe #10 */
+          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -66,12 +108,8 @@
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495,
-              HasCompilationUnitRoot: {Scrubbed},
-              Options: {Scrubbed}
-            },
-            IsInSource: {Scrubbed},
-            IsInMetadata: {Scrubbed}
+              Length: 495
+            }
           },
           ParsedText: /* Macro TestMe #10 */,
           FilePath: TestDocument.cs,
@@ -83,8 +121,14 @@
             LineIdentifier: 10
           },
           Kind: SyntaxTrivia,
-          SyntaxTrivia: {Scrubbed},
-          RegionDirective: {Scrubbed},
+          SyntaxTrivia: {
+            Kind: MultiLineCommentTrivia,
+            Span: {
+              Start: 371,
+              Length: 18
+            },
+            ToString: /* EndMacro #10 */
+          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -93,12 +137,8 @@
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495,
-              HasCompilationUnitRoot: {Scrubbed},
-              Options: {Scrubbed}
-            },
-            IsInSource: {Scrubbed},
-            IsInMetadata: {Scrubbed}
+              Length: 495
+            }
           }
         }
       },
@@ -109,8 +149,14 @@
             LineIdentifier: 20
           },
           Kind: RegionDirectiveTriviaSyntax,
-          SyntaxTrivia: {Scrubbed},
-          RegionDirective: {Scrubbed},
+          RegionDirective: {
+            Kind: RegionDirectiveTrivia,
+            Span: {
+              Start: 397,
+              Length: 24
+            },
+            ToString: #region Macro TestMe #20
+          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -119,12 +165,8 @@
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495,
-              HasCompilationUnitRoot: {Scrubbed},
-              Options: {Scrubbed}
-            },
-            IsInSource: {Scrubbed},
-            IsInMetadata: {Scrubbed}
+              Length: 495
+            }
           },
           ParsedText: #region Macro TestMe #20,
           FilePath: TestDocument.cs,
@@ -133,8 +175,14 @@
         End: {
           Text: ,
           Kind: RegionDirectiveTriviaSyntax,
-          SyntaxTrivia: {Scrubbed},
-          RegionDirective: {Scrubbed},
+          RegionDirective: {
+            Kind: EndRegionDirectiveTrivia,
+            Span: {
+              Start: 478,
+              Length: 14
+            },
+            ToString: #endregion #20
+          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -143,16 +191,11 @@
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 495,
-              HasCompilationUnitRoot: {Scrubbed},
-              Options: {Scrubbed}
-            },
-            IsInSource: {Scrubbed},
-            IsInMetadata: {Scrubbed}
+              Length: 495
+            }
           }
         }
       }
     ]
-  },
-  Error: No EndRegionDirectiveTrivia
+  }
 }
