@@ -3,6 +3,21 @@
   Tree: [
     {
       Start: {
+        Text:
+namespace Brimborium.Macro.Sample;
+
+internal partial class Sample002 {
+    public required string Name { get; set; }
+
+    ,
+        Kind: Constant
+      },
+      End: {
+        Kind: Constant
+      }
+    },
+    {
+      Start: {
         Text: TestMe,
         LocationTag: {
           LineIdentifier: 6
@@ -31,6 +46,19 @@
         FilePath: TestDocument.cs,
         Line: 6
       },
+      Children: [
+        {
+          Start: {
+            Text:
+    public required int Age { get; set; }
+    ,
+            Kind: Constant
+          },
+          End: {
+            Kind: Constant
+          }
+        }
+      ],
       End: {
         Text: ,
         LocationTag: {
@@ -56,6 +84,17 @@
             Length: 535
           }
         }
+      }
+    },
+    {
+      Start: {
+        Text:
+
+    ,
+        Kind: Constant
+      },
+      End: {
+        Kind: Constant
       }
     },
     {
@@ -88,6 +127,19 @@
         FilePath: TestDocument.cs,
         Line: 10
       },
+      Children: [
+        {
+          Start: {
+            Text:
+    public required System.DateTime Birthday { get; set; }
+    ,
+            Kind: Constant
+          },
+          End: {
+            Kind: Constant
+          }
+        }
+      ],
       End: {
         Text: ,
         LocationTag: {
@@ -113,6 +165,17 @@
             Length: 535
           }
         }
+      }
+    },
+    {
+      Start: {
+        Text:
+
+    ,
+        Kind: Constant
+      },
+      End: {
+        Kind: Constant
       }
     },
     {
@@ -148,6 +211,18 @@
       Children: [
         {
           Start: {
+            Text:
+    public required string Nickname1 { get; set; }
+
+    ,
+            Kind: Constant
+          },
+          End: {
+            Kind: Constant
+          }
+        },
+        {
+          Start: {
             Text: TestMe ,
             LocationTag: {
               LineIdentifier: 30
@@ -176,6 +251,19 @@
             FilePath: TestDocument.cs,
             Line: 17
           },
+          Children: [
+            {
+              Start: {
+                Text:
+    public required string Nickname2 { get; set; }
+    ,
+                Kind: Constant
+              },
+              End: {
+                Kind: Constant
+              }
+            }
+          ],
           End: {
             Text: ,
             Kind: RegionDirectiveTriviaSyntax,
@@ -198,6 +286,16 @@
                 Length: 535
               }
             }
+          }
+        },
+        {
+          Start: {
+            Text:
+    ,
+            Kind: Constant
+          },
+          End: {
+            Kind: Constant
           }
         }
       ],

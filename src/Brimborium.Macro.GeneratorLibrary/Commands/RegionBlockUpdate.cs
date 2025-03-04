@@ -10,26 +10,28 @@ using System.Threading.Tasks;
 using Brimborium.Macro;
 using Brimborium.Macro.Parse;
 using Brimborium.Macro.Model;
+using System.Collections.Immutable;
 
 namespace Brimborium.Macro.Commands;
 public static class RegionBlockUpdate {
     public static DocumentRegionTree UpdateLocationTag(
         DocumentRegionTree documentRegionTree,
         UpdateLocationTagOptions options) {
-        var tree = UpdateLocationTag(documentRegionTree.Tree, options);
+        var treeOld = documentRegionTree.Tree;
+        var (modified, treeNext) = UpdateLocationTag(treeOld, options);
 
-        if (ReferenceEquals(tree, documentRegionTree.Tree)) {
-            return documentRegionTree;
+        if (modified) {
+            return new DocumentRegionTree(documentRegionTree.FilePath, treeNext);
         } else {
-            return new DocumentRegionTree(documentRegionTree.FilePath, tree);
+            return documentRegionTree;
         }
     }
 
-    public static List<RegionBlock> UpdateLocationTag(
-        List<RegionBlock> tree,
+    public static (bool Modified, ImmutableArray<RegionBlock> Tree) UpdateLocationTag(
+        ImmutableArray<RegionBlock> tree,
         UpdateLocationTagOptions options
         ) {
-        var result = new List<RegionBlock>(tree.Count);
+        var result = new List<RegionBlock>(tree.Length);
         var modified = false;
         foreach (var regionBlock in tree) {
             var newRegionBlock = UpdateLocationTag(regionBlock, options);
@@ -40,7 +42,12 @@ public static class RegionBlockUpdate {
                 modified = true;
             }
         }
-        return modified ? result : tree;
+
+        if (modified) {
+            return (true, result.ToImmutableArray());
+        } else {
+            return (false, tree);
+        }
     }
 
     private static RegionBlock UpdateLocationTag(
@@ -50,8 +57,9 @@ public static class RegionBlockUpdate {
             if (regionBlock.Start.LocationTag.LineIdentifier != regionBlock.Start.Line) {
                 regionBlock = regionBlock.WithStartLocationTag(
                     (regionBlock.Start.LocationTag is { } locationTag)
-                    ? locationTag with { 
-                        LineIdentifier = regionBlock.Start.Line }
+                    ? locationTag with {
+                        LineIdentifier = regionBlock.Start.Line
+                    }
                     : new LocationTag(
                         FilePath: null,
                         LineIdentifier: regionBlock.Start.Line));
@@ -62,19 +70,12 @@ public static class RegionBlockUpdate {
                         FilePath: null,
                         LineIdentifier: regionBlock.Start.Line));
         }
-        if (regionBlock.End is {} end){
+        if (regionBlock.End is { } end) {
             regionBlock = regionBlock.WithEndLocationTag(
-                new LocationTag(FilePath:null, LineIdentifier: regionBlock.Start.Line));
+                new LocationTag(FilePath: null, LineIdentifier: regionBlock.Start.Line));
         }
         return regionBlock;
     }
-
-    /*
-    public static DocumentRegionTree UpdateInformation(DocumentRegionTree documentRegionTree) {
-        documentRegionTree.Tree
-    }
-    */
-
 }
 
 public record UpdateLocationTagOptions(

@@ -59,22 +59,25 @@ public static class TestUtils {
         var pathMacroAttribute = System.IO.Path.Combine(TestUtils.GetSolutionFolder(), @"src\Brimborium.Macro\MacroAttribute.cs");
         var sourceMacroAttribute = System.IO.File.ReadAllText(pathMacroAttribute);
 
-        var documentMacroAttribute = adhocWorkspace.AddDocument(projectId, "MacroAttribute.cs", SourceText.From(sourceMacroAttribute));
-        var document = adhocWorkspace.AddDocument(projectId, "TestDocument.cs", SourceText.From(sourceCode));
-        var project = adhocWorkspace.CurrentSolution.Projects.FirstOrDefault(project => project.Id == projectId);
-        if (project is null) { throw new System.Exception("project is null"); }
+        var documentMacroAttribute = adhocWorkspace.AddDocument(projectId, "MacroAttribute.cs", SourceText.From(sourceMacroAttribute))
+            ?? throw new System.Exception("documentMacroAttribute is null");
+        var document = adhocWorkspace.AddDocument(projectId, "TestDocument.cs", SourceText.From(sourceCode))
+            ?? throw new System.Exception("document is null");
 
-        var compliation = await project.GetCompilationAsync();
-        if (compliation is null) { throw new System.Exception("compliation is null"); }
+        var project = adhocWorkspace.CurrentSolution.Projects
+            .FirstOrDefault(project => project.Id == projectId)
+            ?? throw new System.Exception("project is null");
+
+        var compliation = await project.GetCompilationAsync()
+            ?? throw new System.Exception("compliation is null");
         var listDiagnostics = compliation.GetDiagnostics();
 
         var syntaxTree = compliation.SyntaxTrees.FirstOrDefault(
             syntaxTree => syntaxTree.FilePath == "TestDocument.cs")
-            ;
-        if (syntaxTree is null) { throw new System.Exception("syntaxTree is null"); }
+            ?? throw new System.Exception("syntaxTree is null"); 
 
-        var semanticModel = compliation.GetSemanticModel(syntaxTree);
-        if (semanticModel is null) { throw new System.Exception("semanticModel is null"); }
+        var semanticModel = compliation.GetSemanticModel(syntaxTree)
+            ?? throw new System.Exception("semanticModel is null");
 
         return new PreparedDocument(
             Workspace: adhocWorkspace,

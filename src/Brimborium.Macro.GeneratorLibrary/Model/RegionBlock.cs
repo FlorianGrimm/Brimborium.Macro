@@ -26,7 +26,7 @@ namespace Brimborium.Macro.Model;
 /// <param name="Error">The error message associated with the region block.</param>
 public record class RegionBlock(
     RegionStart Start,
-    List<RegionBlock> Children,
+    ImmutableArray<RegionBlock> Children,
     RegionEnd? End,
     string? Error,
     RegionBlockInformation? Information
@@ -45,6 +45,7 @@ public record class RegionBlock(
             pos += startSourceSpan.Length;
         }
     }
+
     public void Generate(string sourceCode, ref int pos, StringBuilder sbOut) {
         if (this.Start.Kind == ParserNodeOrTriviaKind.SyntaxTrivia) {
             sbOut.Append("/* Macro ");
@@ -55,7 +56,7 @@ public record class RegionBlock(
             this.Start.LocationTag.Generate(sbOut);
             sbOut.Append(" */");
 
-            if (0 == this.Children.Count) {
+            if (0 == this.Children.Length) {
                 // insert content
                 if (this.Start.TryGetLocation(out var startLocation)
                     && this.End is { } end
@@ -88,7 +89,7 @@ public record class RegionBlock(
             this.Start.LocationTag.Generate(sbOut);
             sbOut.AppendLine();
 
-            if (0 == this.Children.Count) {
+            if (0 == this.Children.Length) {
                 // insert content
                 if (this.Start.TryGetLocation(out var startLocation)
                     && this.End is { } end
@@ -123,6 +124,12 @@ public record class RegionBlock(
         }
     }
 
+    public RegionBlock WithAddChild(RegionBlock regionBlock) {
+        return this with {
+            Children = this.Children.Add(regionBlock)
+        };
+    }
+
     public RegionBlock WithStartLocationTag(LocationTag locationTag) {
         if (this.Start.LocationTag.Equals(locationTag)) {
             return this;
@@ -150,6 +157,19 @@ public record class RegionBlock(
             return this;
         }
     }
+
+    public RegionBlock WithReplaceLastChild(RegionBlock valueOld, RegionBlock valueNew) {
+        if (this.Children.Length == 0) {
+            throw new InvalidOperationException();
+        }
+        if (this.Children[^1].Start != valueOld.Start) {
+            throw new InvalidOperationException();
+        }
+
+        return this with {
+            Children = this.Children.RemoveAt(this.Children.Length - 1).Add(valueNew)
+        };
+    }
 }
 
 public record struct LocationTag(
@@ -173,6 +193,7 @@ public record struct LocationTag(
 /// </summary>
 public enum ParserNodeOrTriviaKind {
     None,
+    Constant,
     SyntaxTrivia,
     RegionDirectiveTriviaSyntax,
     AttributeSyntax,
@@ -355,7 +376,7 @@ public record struct RegionEnd(
     ParserNodeOrTriviaKind Kind,
     SyntaxTrivia? SyntaxTrivia,
     EndRegionDirectiveTriviaSyntax? RegionDirective,
-    Location Location
+    Location? Location
 ) {
     /// <summary>
     /// Initializes a new instance of the <see cref="RegionEnd"/> struct with syntax trivia.
