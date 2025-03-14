@@ -15,3 +15,7 @@ internal partial class Sample001 {
     public required string Nickname { get; set; }
     #endregion #20
 }
+
+internal partial class Sample001B {
+    public required string Value { get; set; }
+}

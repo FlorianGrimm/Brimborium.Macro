@@ -54,7 +54,15 @@ public static class Defaults {
                     //item => item.SyntaxTrivia,
                     //item => item.RegionDirective,
                     item => item.Attribute,
-                    item => item.SyntaxNode
+                    item => item.SyntaxNode,
+                    item => item.HasValue,
+                    item => item.IsEmpty
+                );
+                _VerifySettings.IgnoreMembers<RegionEnd>(
+                    item => item.SyntaxTrivia,
+                    item => item.RegionDirective,
+                    item => item.HasValue,
+                    item => item.IsEmpty
                 );
                 //SyntaxTrivia
                 _VerifySettings.AddExtraSettings(options => {

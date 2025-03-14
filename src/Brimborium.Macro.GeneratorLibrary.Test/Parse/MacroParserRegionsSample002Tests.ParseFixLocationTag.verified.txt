@@ -1,18 +1,19 @@
 ﻿{
-  DocumentRegionTree: {
-    FilePath: TestDocument.cs,
-    Tree: [
+  FilePath: TestDocument.cs,
+  Tree: {
+    Children: [
       {
         Start: {
           Text:
 namespace Brimborium.Macro.Sample;
 
-internal partial class Sample001 {
+internal partial class Sample002 {
     public required string Name { get; set; }
 
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -20,6 +21,10 @@ internal partial class Sample001 {
       {
         Start: {
           Text: TestMe,
+          LocationTag: {
+            LineIdentifier: 6,
+            IsEmpty: false
+          },
           Kind: SyntaxTrivia,
           SyntaxTrivia: {
             Kind: MultiLineCommentTrivia,
@@ -37,7 +42,7 @@ internal partial class Sample001 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 428
+              Length: 757
             }
           },
           ParsedText: /* Macro TestMe */,
@@ -52,6 +57,7 @@ internal partial class Sample001 {
     ,
               Kind: Constant
             },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -59,15 +65,11 @@ internal partial class Sample001 {
         ],
         End: {
           Text: ,
-          Kind: SyntaxTrivia,
-          SyntaxTrivia: {
-            Kind: MultiLineCommentTrivia,
-            Span: {
-              Start: 194,
-              Length: 14
-            },
-            ToString: /* EndMacro */
+          LocationTag: {
+            LineIdentifier: 6,
+            IsEmpty: false
           },
+          Kind: SyntaxTrivia,
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -76,7 +78,7 @@ internal partial class Sample001 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 428
+              Length: 757
             }
           }
         }
@@ -88,6 +90,7 @@ internal partial class Sample001 {
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -96,7 +99,8 @@ internal partial class Sample001 {
         Start: {
           Text: TestMe ,
           LocationTag: {
-            LineIdentifier: 10
+            LineIdentifier: 10,
+            IsEmpty: false
           },
           Kind: SyntaxTrivia,
           SyntaxTrivia: {
@@ -115,7 +119,7 @@ internal partial class Sample001 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 428
+              Length: 757
             }
           },
           ParsedText: /* Macro TestMe #10 */,
@@ -130,6 +134,7 @@ internal partial class Sample001 {
     ,
               Kind: Constant
             },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -138,17 +143,10 @@ internal partial class Sample001 {
         End: {
           Text: ,
           LocationTag: {
-            LineIdentifier: 10
+            LineIdentifier: 10,
+            IsEmpty: false
           },
           Kind: SyntaxTrivia,
-          SyntaxTrivia: {
-            Kind: MultiLineCommentTrivia,
-            Span: {
-              Start: 304,
-              Length: 18
-            },
-            ToString: /* EndMacro #10 */
-          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -157,7 +155,7 @@ internal partial class Sample001 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 428
+              Length: 757
             }
           }
         }
@@ -169,6 +167,7 @@ internal partial class Sample001 {
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -177,7 +176,8 @@ internal partial class Sample001 {
         Start: {
           Text: TestMe ,
           LocationTag: {
-            LineIdentifier: 20
+            LineIdentifier: 14,
+            IsEmpty: false
           },
           Kind: RegionDirectiveTriviaSyntax,
           RegionDirective: {
@@ -196,7 +196,7 @@ internal partial class Sample001 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 428
+              Length: 757
             }
           },
           ParsedText: #region Macro TestMe #20,
@@ -207,10 +207,96 @@ internal partial class Sample001 {
           {
             Start: {
               Text:
-    public required string Nickname { get; set; }
+    /// <summary>
+    /// Get or set the Nickname1
+    /// </summary>
+    /// <value>the Nickname1</value>
+    public required string Nickname1 { get; set; }
+
     ,
               Kind: Constant
             },
+            Children: null,
+            End: {
+              Kind: Constant
+            }
+          },
+          {
+            Start: {
+              Text: TestMe ,
+              LocationTag: {
+                LineIdentifier: 21,
+                IsEmpty: false
+              },
+              Kind: RegionDirectiveTriviaSyntax,
+              RegionDirective: {
+                Kind: RegionDirectiveTrivia,
+                Span: {
+                  Start: 525,
+                  Length: 24
+                },
+                ToString: #region Macro TestMe #30
+              },
+              Location: {
+                Kind: SourceFile,
+                SourceSpan: {
+                  Start: 525,
+                  Length: 24
+                },
+                SourceTree: {
+                  FilePath: TestDocument.cs,
+                  Length: 757
+                }
+              },
+              ParsedText: #region Macro TestMe #30,
+              FilePath: TestDocument.cs,
+              Line: 21
+            },
+            Children: [
+              {
+                Start: {
+                  Text:
+    /// <summary>
+    /// Get or set the Nickname2
+    /// </summary>
+    /// <value>the Nickname2</value>
+    public required string Nickname2 { get; set; }
+    ,
+                  Kind: Constant
+                },
+                Children: null,
+                End: {
+                  Kind: Constant
+                }
+              }
+            ],
+            End: {
+              Text: ,
+              LocationTag: {
+                LineIdentifier: 21,
+                IsEmpty: false
+              },
+              Kind: RegionDirectiveTriviaSyntax,
+              Location: {
+                Kind: SourceFile,
+                SourceSpan: {
+                  Start: 718,
+                  Length: 14
+                },
+                SourceTree: {
+                  FilePath: TestDocument.cs,
+                  Length: 757
+                }
+              }
+            }
+          },
+          {
+            Start: {
+              Text:
+    ,
+              Kind: Constant
+            },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -218,26 +304,32 @@ internal partial class Sample001 {
         ],
         End: {
           Text: ,
-          Kind: RegionDirectiveTriviaSyntax,
-          RegionDirective: {
-            Kind: EndRegionDirectiveTrivia,
-            Span: {
-              Start: 411,
-              Length: 14
-            },
-            ToString: #endregion #20
+          LocationTag: {
+            LineIdentifier: 14,
+            IsEmpty: false
           },
+          Kind: RegionDirectiveTriviaSyntax,
           Location: {
             Kind: SourceFile,
             SourceSpan: {
-              Start: 411,
+              Start: 740,
               Length: 14
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 428
+              Length: 757
             }
           }
+        }
+      },
+      {
+        Start: {
+          Text: },
+          Kind: Constant
+        },
+        Children: null,
+        End: {
+          Kind: Constant
         }
       }
     ]

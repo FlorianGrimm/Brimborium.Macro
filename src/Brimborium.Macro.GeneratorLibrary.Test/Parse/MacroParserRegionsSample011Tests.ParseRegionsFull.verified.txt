@@ -1,0 +1,315 @@
+﻿{
+  DocumentRegionTree: {
+    FilePath: TestDocument.cs,
+    Tree: {
+      Children: [
+        {
+          Start: {
+            Text:
+namespace Brimborium.Macro.Sample;
+,
+            Kind: Constant
+          },
+          Children: null,
+          End: {
+            Kind: Constant
+          }
+        },
+        {
+          Start: {
+            Kind: AttributeSyntax,
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 38,
+                Length: 462
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            },
+            FilePath: TestDocument.cs,
+            Line: 3
+          },
+          Children: null,
+          End: {
+            Kind: AttributeSyntax,
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 38,
+                Length: 462
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            }
+          }
+        },
+        {
+          Start: {
+            Kind: AttributeSyntax,
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 112,
+                Length: 79
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            },
+            FilePath: TestDocument.cs,
+            Line: 5
+          },
+          Children: null,
+          End: {
+            Kind: AttributeSyntax,
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 112,
+                Length: 79
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            }
+          }
+        },
+        {
+          Start: {
+            Text:
+    ,
+            Kind: Constant
+          },
+          Children: null,
+          End: {
+            Kind: Constant
+          }
+        },
+        {
+          Start: {
+            Text: TestMe,
+            Kind: SyntaxTrivia,
+            SyntaxTrivia: {
+              Kind: MultiLineCommentTrivia,
+              Span: {
+                Start: 199,
+                Length: 18
+              },
+              ToString: /* Macro TestMe */
+            },
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 199,
+                Length: 18
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            },
+            ParsedText: /* Macro TestMe */,
+            FilePath: TestDocument.cs,
+            Line: 8
+          },
+          Children: [
+            {
+              Start: {
+                Text:
+    public required int Age { get; set; }
+    ,
+                Kind: Constant
+              },
+              Children: null,
+              End: {
+                Kind: Constant
+              }
+            }
+          ],
+          End: {
+            Text: ,
+            Kind: SyntaxTrivia,
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 266,
+                Length: 14
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            }
+          }
+        },
+        {
+          Start: {
+            Text:
+
+    ,
+            Kind: Constant
+          },
+          Children: null,
+          End: {
+            Kind: Constant
+          }
+        },
+        {
+          Start: {
+            Text: TestMe ,
+            LocationTag: {
+              LineIdentifier: 10,
+              IsEmpty: false
+            },
+            Kind: SyntaxTrivia,
+            SyntaxTrivia: {
+              Kind: MultiLineCommentTrivia,
+              Span: {
+                Start: 288,
+                Length: 22
+              },
+              ToString: /* Macro TestMe #10 */
+            },
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 288,
+                Length: 22
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            },
+            ParsedText: /* Macro TestMe #10 */,
+            FilePath: TestDocument.cs,
+            Line: 12
+          },
+          Children: [
+            {
+              Start: {
+                Text:
+    public required System.DateTime Birthday { get; set; }
+    ,
+                Kind: Constant
+              },
+              Children: null,
+              End: {
+                Kind: Constant
+              }
+            }
+          ],
+          End: {
+            Text: ,
+            LocationTag: {
+              LineIdentifier: 10,
+              IsEmpty: false
+            },
+            Kind: SyntaxTrivia,
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 376,
+                Length: 18
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            }
+          }
+        },
+        {
+          Start: {
+            Text:
+
+    ,
+            Kind: Constant
+          },
+          Children: null,
+          End: {
+            Kind: Constant
+          }
+        },
+        {
+          Start: {
+            Text: TestMe ,
+            LocationTag: {
+              LineIdentifier: 20,
+              IsEmpty: false
+            },
+            Kind: RegionDirectiveTriviaSyntax,
+            RegionDirective: {
+              Kind: RegionDirectiveTrivia,
+              Span: {
+                Start: 402,
+                Length: 24
+              },
+              ToString: #region Macro TestMe #20
+            },
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 402,
+                Length: 24
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            },
+            ParsedText: #region Macro TestMe #20,
+            FilePath: TestDocument.cs,
+            Line: 16
+          },
+          Children: [
+            {
+              Start: {
+                Text:
+    public required string Nickname { get; set; }
+    ,
+                Kind: Constant
+              },
+              Children: null,
+              End: {
+                Kind: Constant
+              }
+            }
+          ],
+          End: {
+            Text: ,
+            Kind: RegionDirectiveTriviaSyntax,
+            Location: {
+              Kind: SourceFile,
+              SourceSpan: {
+                Start: 483,
+                Length: 14
+              },
+              SourceTree: {
+                FilePath: TestDocument.cs,
+                Length: 500
+              }
+            }
+          }
+        },
+        {
+          Start: {
+            Text: },
+            Kind: Constant
+          },
+          Children: null,
+          End: {
+            Kind: Constant
+          }
+        }
+      ]
+    }
+  }
+}

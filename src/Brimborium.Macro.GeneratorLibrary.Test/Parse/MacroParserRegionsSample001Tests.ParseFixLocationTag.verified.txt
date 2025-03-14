@@ -1,7 +1,7 @@
 ﻿{
-  DocumentRegionTree: {
-    FilePath: TestDocument.cs,
-    Tree: [
+  FilePath: TestDocument.cs,
+  Tree: {
+    Children: [
       {
         Start: {
           Text:
@@ -13,6 +13,7 @@ internal partial class Sample001 {
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -20,6 +21,10 @@ internal partial class Sample001 {
       {
         Start: {
           Text: TestMe,
+          LocationTag: {
+            LineIdentifier: 6,
+            IsEmpty: false
+          },
           Kind: SyntaxTrivia,
           SyntaxTrivia: {
             Kind: MultiLineCommentTrivia,
@@ -52,6 +57,7 @@ internal partial class Sample001 {
     ,
               Kind: Constant
             },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -59,15 +65,11 @@ internal partial class Sample001 {
         ],
         End: {
           Text: ,
-          Kind: SyntaxTrivia,
-          SyntaxTrivia: {
-            Kind: MultiLineCommentTrivia,
-            Span: {
-              Start: 194,
-              Length: 14
-            },
-            ToString: /* EndMacro */
+          LocationTag: {
+            LineIdentifier: 6,
+            IsEmpty: false
           },
+          Kind: SyntaxTrivia,
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -88,6 +90,7 @@ internal partial class Sample001 {
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -96,7 +99,8 @@ internal partial class Sample001 {
         Start: {
           Text: TestMe ,
           LocationTag: {
-            LineIdentifier: 10
+            LineIdentifier: 10,
+            IsEmpty: false
           },
           Kind: SyntaxTrivia,
           SyntaxTrivia: {
@@ -130,6 +134,7 @@ internal partial class Sample001 {
     ,
               Kind: Constant
             },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -138,17 +143,10 @@ internal partial class Sample001 {
         End: {
           Text: ,
           LocationTag: {
-            LineIdentifier: 10
+            LineIdentifier: 10,
+            IsEmpty: false
           },
           Kind: SyntaxTrivia,
-          SyntaxTrivia: {
-            Kind: MultiLineCommentTrivia,
-            Span: {
-              Start: 304,
-              Length: 18
-            },
-            ToString: /* EndMacro #10 */
-          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -169,6 +167,7 @@ internal partial class Sample001 {
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -177,7 +176,8 @@ internal partial class Sample001 {
         Start: {
           Text: TestMe ,
           LocationTag: {
-            LineIdentifier: 20
+            LineIdentifier: 14,
+            IsEmpty: false
           },
           Kind: RegionDirectiveTriviaSyntax,
           RegionDirective: {
@@ -211,6 +211,7 @@ internal partial class Sample001 {
     ,
               Kind: Constant
             },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -218,15 +219,11 @@ internal partial class Sample001 {
         ],
         End: {
           Text: ,
-          Kind: RegionDirectiveTriviaSyntax,
-          RegionDirective: {
-            Kind: EndRegionDirectiveTrivia,
-            Span: {
-              Start: 411,
-              Length: 14
-            },
-            ToString: #endregion #20
+          LocationTag: {
+            LineIdentifier: 14,
+            IsEmpty: false
           },
+          Kind: RegionDirectiveTriviaSyntax,
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -238,6 +235,16 @@ internal partial class Sample001 {
               Length: 428
             }
           }
+        }
+      },
+      {
+        Start: {
+          Text: },
+          Kind: Constant
+        },
+        Children: null,
+        End: {
+          Kind: Constant
         }
       }
     ]

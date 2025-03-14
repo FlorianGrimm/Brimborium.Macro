@@ -3,17 +3,15 @@
 
 using Brimborium.Macro.Commands;
 using Brimborium.Macro.GeneratorLibrary.Test;
-using Brimborium.Macro.Model;
 
-using System.Security.Cryptography;
 using System.Text;
 
 namespace Brimborium.Macro.Parse;
 
-public class MacroParserRegionsTests {
+public class MacroParserRegionsSample001Tests {
 
     [Fact]
-    public async Task TestSample001ParseRegionsFull() {
+    public async Task ParseRegionsFull() {
         var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
             = await TestUtils.PrepareDocumentFromFile(
                 @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
@@ -25,19 +23,7 @@ public class MacroParserRegionsTests {
     }
 
     [Fact]
-    public async Task TestSample002ParseRegionsFull() {
-        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
-            = await TestUtils.PrepareDocumentFromFile(
-                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample002.cs");
-
-        var syntaxTreeRoot = await syntaxTree.GetRootAsync();
-        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, syntaxTreeRoot, semanticModel, sourceCode, null, CancellationToken.None);
-
-        await Verify(regionBlockTree, Defaults.VerifySettings);
-    }
-
-    [Fact]
-    public async Task TestSample001ParseRegionsPartial() {
+    public async Task ParseRegionsPartial() {
         var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
             = await TestUtils.PrepareDocumentFromFile(
                 @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
@@ -53,7 +39,7 @@ public class MacroParserRegionsTests {
     }
 
     [Fact]
-    public async Task TestSample001ParseFixLocationTag() {
+    public async Task ParseFixLocationTag() {
         var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
             = await TestUtils.PrepareDocumentFromFile(
                 @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
@@ -66,20 +52,7 @@ public class MacroParserRegionsTests {
     }
 
     [Fact]
-    public async Task TestSample002ParseFixLocationTag() {
-        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
-            = await TestUtils.PrepareDocumentFromFile(
-                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample002.cs");
-
-        var syntaxTreeRoot = await syntaxTree.GetRootAsync();
-        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, syntaxTreeRoot, semanticModel, sourceCode, null, CancellationToken.None);
-
-        var documentRegionTree = RegionBlockUpdate.UpdateLocationTag(regionBlockTree.DocumentRegionTree, UpdateLocationTagOptions.Default);
-        await Verify(documentRegionTree, Defaults.VerifySettings);
-    }
-
-    [Fact]
-    public async Task TestSample001ParseGenerate() {
+    public async Task ParseGenerate() {
         var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
             = await TestUtils.PrepareDocumentFromFile(
                 @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");
@@ -90,31 +63,14 @@ public class MacroParserRegionsTests {
         var documentRegionTree = RegionBlockUpdate.UpdateLocationTag(regionBlockTree.DocumentRegionTree, UpdateLocationTagOptions.Default);
 
         var sbOut = new StringBuilder(sourceCode.Length);
-        documentRegionTree.Generate(sourceCode, sbOut);
+        documentRegionTree.Generate(sbOut);
         var sourceCodeAfter = sbOut.ToString();
 
         await Verify(sourceCodeAfter, Defaults.VerifySettings);
     }
 
     [Fact]
-    public async Task TestSample002ParseGenerate() {
-        var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
-            = await TestUtils.PrepareDocumentFromFile(
-                @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample002.cs");
-
-        var syntaxTreeRoot = await syntaxTree.GetRootAsync();
-        var regionBlockTree = MacroParserRegions.ParseRegions(filePath, syntaxTree, syntaxTreeRoot, semanticModel, sourceCode, null, CancellationToken.None);
-        var documentRegionTree = RegionBlockUpdate.UpdateLocationTag(regionBlockTree.DocumentRegionTree, UpdateLocationTagOptions.Default);
-
-        var sbOut = new StringBuilder(sourceCode.Length);
-        documentRegionTree.Generate(sourceCode, sbOut);
-        var sourceCodeAfter = sbOut.ToString();
-
-        await Verify(sourceCodeAfter, Defaults.VerifySettings);
-    }
-
-    [Fact]
-    public async Task TestSample001ParseFixLocationTagAndUpdate() {
+    public async Task ParseFixLocationTagTwice() {
         string sourceCode1Before;
         string sourceCode1After;
         {
@@ -127,7 +83,7 @@ public class MacroParserRegionsTests {
             var regionBlockTree1 = MacroParserRegions.ParseRegions(filePath1, syntaxTree1, syntaxTreeRoot1, semanticModel1, sourceCode1, null, CancellationToken.None);
             var documentRegionTree = RegionBlockUpdate.UpdateLocationTag(regionBlockTree1.DocumentRegionTree, new UpdateLocationTagOptions(true));
             var sbOut = new StringBuilder(sourceCode1.Length);
-            documentRegionTree.Generate(sourceCode1, sbOut);
+            documentRegionTree.Generate(sbOut);
             sourceCode1After = sbOut.ToString();
         }
 
@@ -140,7 +96,7 @@ public class MacroParserRegionsTests {
             var regionBlockTree2 = MacroParserRegions.ParseRegions(filePath2, syntaxTree2, syntaxTreeRoot2, semanticModel2, sourceCode2, null, CancellationToken.None);
             var documentRegionTree = RegionBlockUpdate.UpdateLocationTag(regionBlockTree2.DocumentRegionTree, new UpdateLocationTagOptions(true));
             var sbOut = new StringBuilder(sourceCode2.Length);
-            documentRegionTree.Generate(sourceCode2, sbOut);
+            documentRegionTree.Generate(sbOut);
             var sourceCode2After = sbOut.ToString();
             await Verify(new string[] { sourceCode1After, sourceCode2After }, Defaults.VerifySettings);
             Assert.Equal(sourceCode1After, sourceCode2After);
@@ -149,7 +105,7 @@ public class MacroParserRegionsTests {
 
 
     [Fact]
-    public async Task TestSample001RegionBlockInformation() {
+    public async Task RegionBlockInformation() {
         var (workspace, project, compilation, filePath, sourceCode, syntaxTree, semanticModel)
             = await TestUtils.PrepareDocumentFromFile(
                 @"src\Brimborium.Macro.GeneratorLibrary.Test\Sample\Sample001.cs");

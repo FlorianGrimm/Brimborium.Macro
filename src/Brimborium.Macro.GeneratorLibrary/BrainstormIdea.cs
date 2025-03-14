@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Brimborium.Macro.Model;
+
+using Microsoft.CodeAnalysis;
 
 using System;
 using System.Collections.Generic;
@@ -77,6 +79,14 @@ namespace Brimborium.Macro {
 
 
         public async Task UpdateMacro(MacroLocation macroLocation, CancellationToken ctStop) {
+            await Task.CompletedTask;
+        }
+
+        public async Task<DifferenceDocumentRegionTree> CalculateMacro(MacroLocation macroLocation, CancellationToken ctStop) {
+            await Task.CompletedTask;
+            return null!;
+        }
+        public async Task ApplyMacro(DifferenceDocumentRegionTree differenceDocumentRegionTree, CancellationToken ctStop) {
             await Task.CompletedTask;
         }
 

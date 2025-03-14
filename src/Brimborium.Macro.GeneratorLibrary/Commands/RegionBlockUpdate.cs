@@ -1,15 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Brimborium.Macro.Model;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-
-using Brimborium.Macro;
-using Brimborium.Macro.Parse;
-using Brimborium.Macro.Model;
 using System.Collections.Immutable;
 
 namespace Brimborium.Macro.Commands;
@@ -32,49 +22,92 @@ public static class RegionBlockUpdate {
         UpdateLocationTagOptions options
         ) {
         var result = new List<RegionBlock>(tree.Length);
-        var modified = false;
+        var treeModified = false;
         foreach (var regionBlock in tree) {
-            var newRegionBlock = UpdateLocationTag(regionBlock, options);
-            if (ReferenceEquals(newRegionBlock, regionBlock)) {
+            if ((regionBlock.Start.Kind == SyntaxNodeType.None)
+                || (regionBlock.Start.Kind == SyntaxNodeType.Constant)) {
                 result.Add(regionBlock);
             } else {
-                result.Add(newRegionBlock);
-                modified = true;
+                var (newModified, newRegionBlock) = UpdateLocationTag(regionBlock, options);
+                if (newModified) {
+                    result.Add(newRegionBlock);
+                    treeModified = true;
+                } else {
+                    result.Add(regionBlock);
+                }
             }
         }
 
-        if (modified) {
+        if (treeModified) {
             return (true, result.ToImmutableArray());
         } else {
             return (false, tree);
         }
     }
 
-    private static RegionBlock UpdateLocationTag(
+    public static (bool modified, RegionBlock) UpdateLocationTag(
         RegionBlock regionBlock,
         UpdateLocationTagOptions options) {
-        if (regionBlock.Start.LocationTag.DoesExists()) {
-            if (regionBlock.Start.LocationTag.LineIdentifier != regionBlock.Start.Line) {
-                regionBlock = regionBlock.WithStartLocationTag(
-                    (regionBlock.Start.LocationTag is { } locationTag)
-                    ? locationTag with {
-                        LineIdentifier = regionBlock.Start.Line
-                    }
-                    : new LocationTag(
-                        FilePath: null,
-                        LineIdentifier: regionBlock.Start.Line));
+        var oldRegionBlock = regionBlock;
+        var locationTag = new LocationTag(FilePath: null, LineIdentifier: regionBlock.Start.Line);
+        if (regionBlock.Start.HasValue) {
+            if (regionBlock.Start.LocationTag.HasValue()) {
+                regionBlock = regionBlock.WithStart(UpdateLocationTag(regionBlock.Start, options));
+            } else if (options.AddMissingLocationTag) {
+                regionBlock = regionBlock.WithStartLocationTag(locationTag);
             }
-        } else if (options.AddMissingLocationTag) {
-            regionBlock = regionBlock.WithStartLocationTag(
-                    new LocationTag(
+        }
+        regionBlock = regionBlock.WithEndLocationTag(locationTag);
+        if (0 < regionBlock.Children.Length) {
+            var (modified, children) = UpdateLocationTag(regionBlock.Children, options);
+            if (modified) {
+                regionBlock = regionBlock with { Children = children };
+            }
+        }
+        return (!ReferenceEquals(oldRegionBlock, regionBlock), regionBlock);
+    }
+
+    public static RegionStart UpdateLocationTag(
+        RegionStart regionStart,
+        UpdateLocationTagOptions options) {
+        if (regionStart.LocationTag.HasValue()) {
+            var line = regionStart.Line;
+            if (regionStart.LocationTag.LineIdentifier != line) {
+                if (regionStart.LocationTag is { } locationTag) {
+                    return regionStart.WithLocationTag(
+                        locationTag with {
+                            LineIdentifier = line
+                        });
+                } else {
+                    return regionStart.WithLocationTag(new LocationTag(
                         FilePath: null,
-                        LineIdentifier: regionBlock.Start.Line));
+                        LineIdentifier: line));
+                }
+            }
         }
-        if (regionBlock.End is { } end) {
-            regionBlock = regionBlock.WithEndLocationTag(
-                new LocationTag(FilePath: null, LineIdentifier: regionBlock.Start.Line));
+        return regionStart;
+    }
+
+    public static RegionEnd UpdateLocationTag(
+        RegionEnd regionEnd,
+        RegionStart regionStart,
+        UpdateLocationTagOptions options) {
+        if (regionEnd.LocationTag.HasValue()) {
+            var line = regionStart.Line;
+            if (regionEnd.LocationTag.LineIdentifier != line) {
+                if (regionEnd.LocationTag is { } locationTag) {
+                    return regionEnd.WithLocationTag(
+                        locationTag with {
+                            LineIdentifier = line
+                        });
+                } else {
+                    return regionEnd.WithLocationTag(new LocationTag(
+                        FilePath: null,
+                        LineIdentifier: line));
+                }
+            }
         }
-        return regionBlock;
+        return regionEnd;
     }
 }
 

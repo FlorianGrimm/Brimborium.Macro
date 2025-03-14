@@ -1,18 +1,19 @@
 ﻿{
-  DocumentRegionTree: {
-    FilePath: TestDocument.cs,
-    Tree: [
+  FilePath: TestDocument.cs,
+  Tree: {
+    Children: [
       {
         Start: {
           Text:
 namespace Brimborium.Macro.Sample;
 
-internal partial class Sample002 {
+internal partial class Sample001 {
     public required string Name { get; set; }
 
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -20,6 +21,10 @@ internal partial class Sample002 {
       {
         Start: {
           Text: TestMe,
+          LocationTag: {
+            LineIdentifier: 6,
+            IsEmpty: false
+          },
           Kind: SyntaxTrivia,
           SyntaxTrivia: {
             Kind: MultiLineCommentTrivia,
@@ -37,7 +42,7 @@ internal partial class Sample002 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 535
+              Length: 428
             }
           },
           ParsedText: /* Macro TestMe */,
@@ -52,6 +57,7 @@ internal partial class Sample002 {
     ,
               Kind: Constant
             },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -59,15 +65,11 @@ internal partial class Sample002 {
         ],
         End: {
           Text: ,
-          Kind: SyntaxTrivia,
-          SyntaxTrivia: {
-            Kind: MultiLineCommentTrivia,
-            Span: {
-              Start: 194,
-              Length: 14
-            },
-            ToString: /* EndMacro */
+          LocationTag: {
+            LineIdentifier: 6,
+            IsEmpty: false
           },
+          Kind: SyntaxTrivia,
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -76,7 +78,7 @@ internal partial class Sample002 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 535
+              Length: 428
             }
           }
         }
@@ -88,6 +90,7 @@ internal partial class Sample002 {
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -96,7 +99,8 @@ internal partial class Sample002 {
         Start: {
           Text: TestMe ,
           LocationTag: {
-            LineIdentifier: 10
+            LineIdentifier: 10,
+            IsEmpty: false
           },
           Kind: SyntaxTrivia,
           SyntaxTrivia: {
@@ -115,7 +119,7 @@ internal partial class Sample002 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 535
+              Length: 428
             }
           },
           ParsedText: /* Macro TestMe #10 */,
@@ -130,6 +134,7 @@ internal partial class Sample002 {
     ,
               Kind: Constant
             },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -138,17 +143,10 @@ internal partial class Sample002 {
         End: {
           Text: ,
           LocationTag: {
-            LineIdentifier: 10
+            LineIdentifier: 10,
+            IsEmpty: false
           },
           Kind: SyntaxTrivia,
-          SyntaxTrivia: {
-            Kind: MultiLineCommentTrivia,
-            Span: {
-              Start: 304,
-              Length: 18
-            },
-            ToString: /* EndMacro #10 */
-          },
           Location: {
             Kind: SourceFile,
             SourceSpan: {
@@ -157,7 +155,7 @@ internal partial class Sample002 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 535
+              Length: 428
             }
           }
         }
@@ -169,6 +167,7 @@ internal partial class Sample002 {
     ,
           Kind: Constant
         },
+        Children: null,
         End: {
           Kind: Constant
         }
@@ -177,7 +176,8 @@ internal partial class Sample002 {
         Start: {
           Text: TestMe ,
           LocationTag: {
-            LineIdentifier: 20
+            LineIdentifier: 14,
+            IsEmpty: false
           },
           Kind: RegionDirectiveTriviaSyntax,
           RegionDirective: {
@@ -196,7 +196,7 @@ internal partial class Sample002 {
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 535
+              Length: 428
             }
           },
           ParsedText: #region Macro TestMe #20,
@@ -207,88 +207,11 @@ internal partial class Sample002 {
           {
             Start: {
               Text:
-    public required string Nickname1 { get; set; }
-
+    public required string Nickname { get; set; }
     ,
               Kind: Constant
             },
-            End: {
-              Kind: Constant
-            }
-          },
-          {
-            Start: {
-              Text: TestMe ,
-              LocationTag: {
-                LineIdentifier: 30
-              },
-              Kind: RegionDirectiveTriviaSyntax,
-              RegionDirective: {
-                Kind: RegionDirectiveTrivia,
-                Span: {
-                  Start: 414,
-                  Length: 24
-                },
-                ToString: #region Macro TestMe #30
-              },
-              Location: {
-                Kind: SourceFile,
-                SourceSpan: {
-                  Start: 414,
-                  Length: 24
-                },
-                SourceTree: {
-                  FilePath: TestDocument.cs,
-                  Length: 535
-                }
-              },
-              ParsedText: #region Macro TestMe #30,
-              FilePath: TestDocument.cs,
-              Line: 17
-            },
-            Children: [
-              {
-                Start: {
-                  Text:
-    public required string Nickname2 { get; set; }
-    ,
-                  Kind: Constant
-                },
-                End: {
-                  Kind: Constant
-                }
-              }
-            ],
-            End: {
-              Text: ,
-              Kind: RegionDirectiveTriviaSyntax,
-              RegionDirective: {
-                Kind: EndRegionDirectiveTrivia,
-                Span: {
-                  Start: 496,
-                  Length: 14
-                },
-                ToString: #endregion #30
-              },
-              Location: {
-                Kind: SourceFile,
-                SourceSpan: {
-                  Start: 496,
-                  Length: 14
-                },
-                SourceTree: {
-                  FilePath: TestDocument.cs,
-                  Length: 535
-                }
-              }
-            }
-          },
-          {
-            Start: {
-              Text:
-    ,
-              Kind: Constant
-            },
+            Children: null,
             End: {
               Kind: Constant
             }
@@ -296,26 +219,32 @@ internal partial class Sample002 {
         ],
         End: {
           Text: ,
-          Kind: RegionDirectiveTriviaSyntax,
-          RegionDirective: {
-            Kind: EndRegionDirectiveTrivia,
-            Span: {
-              Start: 518,
-              Length: 14
-            },
-            ToString: #endregion #20
+          LocationTag: {
+            LineIdentifier: 14,
+            IsEmpty: false
           },
+          Kind: RegionDirectiveTriviaSyntax,
           Location: {
             Kind: SourceFile,
             SourceSpan: {
-              Start: 518,
+              Start: 411,
               Length: 14
             },
             SourceTree: {
               FilePath: TestDocument.cs,
-              Length: 535
+              Length: 428
             }
           }
+        }
+      },
+      {
+        Start: {
+          Text: },
+          Kind: Constant
+        },
+        Children: null,
+        End: {
+          Kind: Constant
         }
       }
     ]

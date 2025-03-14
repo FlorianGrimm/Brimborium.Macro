@@ -7,11 +7,6 @@ using Brimborium.Macro.Model;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-
-using System.Collections.Immutable;
-using System.Configuration;
-using System.Text;
 
 namespace Brimborium.Macro.Parse;
 
@@ -20,25 +15,6 @@ public sealed record class ParseRegionsResult(
     RegionBlock? RegionBlockAtLocation,
     string? Error
     );
-
-public sealed record class DocumentRegionTree(
-    string FilePath,
-    ImmutableArray<RegionBlock> Tree
-    ) {
-
-    public void Generate(string sourceCode, StringBuilder sbOut) {
-        int pos = 0;
-        this.Generate(sourceCode, ref pos, sbOut);
-        sbOut.Append(sourceCode.AsSpan(pos));
-    }
-
-    public void Generate(string sourceCode, ref int pos, StringBuilder sbOut) {
-        foreach (var regionBlock in this.Tree) {
-            regionBlock.AppendPrefix(sourceCode, ref pos, sbOut);
-            regionBlock.Generate(sourceCode, ref pos, sbOut);
-        }
-    }
-}
 
 public class MacroParserRegions {
 
@@ -54,26 +30,82 @@ public class MacroParserRegions {
     public static ParseRegionsResult ParseRegions(
         string filePath,
         SyntaxTree syntaxTree,
-        SyntaxNode treeRoot,
+        SyntaxNode syntaxTreeRoot,
         SemanticModel semanticModel,
         string? fullText,
         Location? locationToSearch,
         CancellationToken cancellationToken) {
-        var parser = new MacroParserRegions();
-        // TODO: locationToSearch
+
+        Stack<RegionBlock> stackRegionBlock = new();
+        stackRegionBlock.Push(RegionBlock.Empty);
         fullText ??= syntaxTree.GetText(cancellationToken).ToString() ?? string.Empty;
-        return parser.parseRegionsImpl(filePath, syntaxTree, treeRoot, semanticModel, fullText, cancellationToken);
+
+        var parser = new MacroParserRegions(
+            filePath,
+            syntaxTree,
+            syntaxTreeRoot,
+            fullText,
+            locationToSearch,
+            stackRegionBlock
+        );
+        var listSyntaxTrivia = ScanRegions(syntaxTreeRoot, semanticModel, cancellationToken);
+
+        var initialState = new ParseRegionState(0, listSyntaxTrivia, 0, fullText.Length);
+        var (success, state) = parser.parseRegionsImpl(initialState, cancellationToken);
+        if (success) {
+            if (1 != stackRegionBlock.Count) {
+                parser.Error = "Unbalaced";
+            } else {
+                parser.addRegionConst(fullText, state.TextStart, fullText.Length);
+            }
+        } else {
+            parser.Error ??= "Error";
+        }
+
+        if (parser.Error != null) {
+            var documentRegionTree = new DocumentRegionTree(filePath, RegionBlock.Empty);
+            var result = new ParseRegionsResult(documentRegionTree, parser._RegionBlockAtLocation, parser.Error);
+            return result;
+        } else {
+            var root = stackRegionBlock.Pop();
+            var documentRegionTree = new DocumentRegionTree(filePath, root);
+            // TODO: _LocationToSearch - parser._RegionBlockAtLocation
+            var result = new ParseRegionsResult(documentRegionTree, parser._RegionBlockAtLocation, parser.Error);
+            return result;
+        }
     }
+    private record struct ParseRegionState(
+        int IndexPositionAndSyntax,
+        List<PositionAndSyntax> ListPositionAndSyntax,
+        int TextStart,
+        int TextEnd
+    );
 
     private string? Error = default;
 
     private readonly Stack<RegionBlock> _StackRegionBlock = new();
 
     private RegionBlock? _RegionBlockAtLocation = default;
+    private string _FilePath;
+    private SyntaxTree _SyntaxTree;
+    private SyntaxNode _SyntaxTreeRoot;
+    private string _FullText;
+    private Location? _LocationToSearch;
 
-    private MacroParserRegions() {
-        var root = new RegionBlock(new RegionStart("Root", new LocationTag(), ParserNodeOrTriviaKind.None, null, null, null, null, null));
-        this._StackRegionBlock.Push(root);
+    private MacroParserRegions(
+        string filePath,
+        SyntaxTree syntaxTree,
+        SyntaxNode syntaxTreeRoot,
+        string fullText,
+        Location? locationToSearch,
+        Stack<RegionBlock> stackRegionBlock
+        ) {
+        this._FilePath = filePath;
+        this._SyntaxTree = syntaxTree;
+        this._SyntaxTreeRoot = syntaxTreeRoot;
+        this._FullText = fullText;
+        this._LocationToSearch = locationToSearch;
+        this._StackRegionBlock = stackRegionBlock;
     }
 
     private bool addRegionStart(RegionStart regionStart, Location? location) {
@@ -91,8 +123,8 @@ public class MacroParserRegions {
             this._StackRegionBlock.Push(currentRegionBlockNext);
             this._StackRegionBlock.Push(regionBlock);
 
-            //if (this._LocationToSearch is { } locationToSearch
-            //    && locationToSearch.Equals(location)) {
+            //if (this._LocationToSearch is { } _LocationToSearch
+            //    && _LocationToSearch.Equals(location)) {
             //    this._RegionBlockAtLocation = regionBlock;
             //}
             return true;
@@ -122,7 +154,7 @@ public class MacroParserRegions {
         if (currentRegionBlock is null) {
             this.Error = "No currentRegionBlock";
             return false;
-        } else if (currentRegionBlock.Start.Kind == ParserNodeOrTriviaKind.None) {
+        } else if (currentRegionBlock.Start.Kind == SyntaxNodeType.None) {
             this.Error = "No currentRegionBlock.Start";
             return false;
         } else if (currentRegionBlock.Start.Kind != regionEnd.Kind) {
@@ -136,9 +168,9 @@ public class MacroParserRegions {
             };
             var information = RegionBlockAnalyse.GetRegionBlockInformation(
                 currentRegionBlockWithEnd, syntaxTree, root);
-            var currentRegionBlockWithEndInformation = currentRegionBlockWithEnd with {
-                Information = information
-            };
+            //var currentRegionBlockWithEndInformation = currentRegionBlockWithEnd with {
+            //    Information = information
+            //};
 
             if (0 == this._StackRegionBlock.Count) {
                 this.Error = "No StackRegionBlock";
@@ -146,7 +178,7 @@ public class MacroParserRegions {
             }
 
             var currentRegionBlockParentNext = this._StackRegionBlock.Pop()
-                .WithReplaceLastChild(currentRegionBlock, currentRegionBlockWithEndInformation);
+                .WithReplaceLastChild(currentRegionBlock, currentRegionBlockWithEnd);
             this._StackRegionBlock.Push(currentRegionBlockParentNext);
 
             return true;
@@ -166,7 +198,7 @@ public class MacroParserRegions {
         var regionBlock = new RegionBlock(
                 Start: new RegionStart(fullText.AsSpan(positionStart, positionEnd - positionStart).ToString(),
                     LocationTag: new LocationTag(),
-                    Kind: ParserNodeOrTriviaKind.Constant,
+                    Kind: SyntaxNodeType.Constant,
                     SyntaxTrivia: null,
                     RegionDirective: null,
                     Attribute: null,
@@ -176,12 +208,11 @@ public class MacroParserRegions {
                 End: new RegionEnd(
                     Text: null,
                     LocationTag: new LocationTag(),
-                    Kind: ParserNodeOrTriviaKind.Constant,
+                    Kind: SyntaxNodeType.Constant,
                     SyntaxTrivia: null,
                     RegionDirective: null,
                     Location: null),
-                Error: null,
-                Information: null
+                Error: null
                 );
 
         var currentRegionBlock = this._StackRegionBlock.Pop();
@@ -190,15 +221,8 @@ public class MacroParserRegions {
         return true;
     }
 
-    private ParseRegionsResult parseRegionsImpl(
-        string FilePath,
-        SyntaxTree syntaxTree,
-        SyntaxNode syntaxTreeRoot,
-        SemanticModel semanticModel,
-        string fullText,
-        CancellationToken cancellationToken
-        ) {
 
+    public static List<PositionAndSyntax> ScanRegions(SyntaxNode syntaxTreeRoot, SemanticModel semanticModel, CancellationToken cancellationToken) {
         var typeMacroAttribute = semanticModel.Compilation.GetTypeByMetadataName("Brimborium.Macro.MacroAttribute");
 
         List<PositionAndSyntax> listSyntaxTrivia = new(1024);
@@ -239,135 +263,219 @@ public class MacroParserRegions {
         cancellationToken.ThrowIfCancellationRequested();
 
         listSyntaxTrivia.Sort((x, y) => x.Position.CompareTo(y.Position));
-        var position = 0;
+        return listSyntaxTrivia;
+    }
+    
+    private (bool success, ParseRegionState state) parseRegionsImpl(
+        ParseRegionState state,
+        CancellationToken cancellationToken
+        ) {
+        while (state.IndexPositionAndSyntax < state.ListPositionAndSyntax.Count) {
+            cancellationToken.ThrowIfCancellationRequested();
+            var (currentPosition, currentTriviaQ, currentAttribute, currentNode) = state.ListPositionAndSyntax[state.IndexPositionAndSyntax];
+            if (state.TextEnd <= currentPosition) {
 
-        foreach (var (_, currentTriviaQ, currentAttribute, currentNode) in listSyntaxTrivia) {
+                return (true, state);
+            }
+
+            var nextIndex = state.IndexPositionAndSyntax + 1;
+            var nextPosition = (nextIndex < state.ListPositionAndSyntax.Count)
+                ? state.ListPositionAndSyntax[nextIndex].Position
+                : state.TextEnd;
+
+            bool success;
             if (currentTriviaQ.HasValue) {
                 var currentTrivia = currentTriviaQ.Value;
-                var token = currentTrivia.Token;
-                var node = token.Parent;
                 if (currentTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)) {
-                    if (currentTrivia.IsDirective) {
-                        var location = currentTrivia.GetLocation();
-
-                        var structure = (DirectiveTriviaSyntax)currentTrivia.GetStructure()!;
-                        if (structure is RegionDirectiveTriviaSyntax regionDirective) {
-                            if (!regionDirective.EndOfDirectiveToken.IsMissing) {
-                                location = regionDirective.GetLocation();
-
-                                var regionText = regionDirective.EndOfDirectiveToken.ToFullString().AsSpan();
-                                if (MacroParser.TryGetRegionBlockStart(regionText, out var commentMacroText)) {
-                                    MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
-                                    var positionStart = regionDirective.FullSpan.Start;
-                                    this.addRegionConst(fullText, position, positionStart);
-                                    var regionStart = new RegionStart(macroText.ToString(), locationTag, regionDirective, location);
-                                    if (this.addRegionStart(regionStart, location)) {
-                                        position = regionDirective.FullSpan.End;
-                                        continue;
-                                    } else {
-                                        return CreateResult();
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    (success, state) = this.parseRegionsImplRegionDirectiveTrivia(currentTrivia, state, cancellationToken);
                 } else if (currentTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)) {
-                    if (currentTrivia.IsDirective) {
-                        var location = currentTrivia.GetLocation();
-
-                        var structure = (DirectiveTriviaSyntax)currentTrivia.GetStructure()!;
-                        if (structure is EndRegionDirectiveTriviaSyntax endRegionDirective) {
-                            location = endRegionDirective.GetLocation();
-                            var positionStart = endRegionDirective.FullSpan.Start;
-                            this.addRegionConst(fullText, position, positionStart);
-                            position = endRegionDirective.FullSpan.End;
-                            string regionText = (endRegionDirective.EndOfDirectiveToken.IsMissing)
-                                ? string.Empty
-                                : endRegionDirective.EndOfDirectiveToken.Text;
-                            if (MacroParser.TryGetRegionBlockEnd(regionText.AsSpan(), out var macroText, out var locationTag)) {
-                                var regionEnd = new RegionEnd(macroText.ToString(), locationTag, endRegionDirective, location);
-                                if (this.addRegionEnd(regionEnd, location, syntaxTree, syntaxTreeRoot)) {
-                                    continue;
-                                } else {
-                                    return CreateResult();
-                                }
-                            }
-                        }
-                    }
+                    (success, state) = this.parseRegionsImplEndRegionDirectiveTrivia(currentTrivia, state, cancellationToken);
                 } else if (currentTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia)) {
-                    var location = currentTrivia.GetLocation();
-                    ReadOnlySpan<char> commentText = fullText.AsSpan(currentTrivia.FullSpan.Start, currentTrivia.FullSpan.Length);
-
-                    switch (MacroParser.TryGetMultiLineComment(commentText, out var commentMacroText)) {
-                        case 1: {
-                            var positionStart = currentTrivia.FullSpan.Start;
-                            this.addRegionConst(fullText, position, positionStart);
-                            position = positionStart + currentTrivia.FullSpan.Length;
-
-                            MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
-                            var regionStart = new RegionStart(macroText.ToString(), locationTag, currentTrivia, location);
-                            if (this.addRegionStart(regionStart, location)) {
-                                continue;
-                            } else {
-                                return CreateResult();
-                            }
-                        }
-                        case 2: {
-                            var positionStart = currentTrivia.FullSpan.Start;
-                            this.addRegionConst(fullText, position, positionStart);
-                            position = positionStart + currentTrivia.FullSpan.Length;
-
-                            MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
-                            var regionEnd = new RegionEnd(macroText.ToString(), locationTag, currentTrivia, location);
-                            if (this.addRegionEnd(regionEnd, location, syntaxTree, syntaxTreeRoot)) {
-                                continue;
-                            } else {
-                                return CreateResult();
-                            }
-                        }
-                        default: continue;
-                    }
+                    (success, state) = this.parseRegionsImplMultiLineCommentTrivia(currentTrivia, state, cancellationToken);
+                } else {
+                    this.Error = "Error";
+                    return (false, state);
                 }
             } else if (currentNode is { } node && currentAttribute is { } attribute) {
-                // classDeclarationSyntax.Identifier
-                var location = node.GetLocation();
-                var positionStart = node.FullSpan.Start;
-                this.addRegionConst(fullText, position, positionStart);
-                position = node.FullSpan.End;
-                var regionStart = new RegionStart(
-                    null,
-                    new LocationTag(),
-                    attribute,
-                    node,
-                    location
-                );
-                var regionEnd = new RegionEnd(
-                    Text: null,
-                    LocationTag: new LocationTag(),
-                    location
-                );
-                this.addRegionStart(regionStart, location);
-                this.addRegionEnd(regionEnd, location, syntaxTree, syntaxTreeRoot);
+                (success, state) = this.parseRegionsImplNodeAttribute(node, attribute, state, cancellationToken);
+            } else {
+                this.Error = "Error";
+                return (false, state);
+            }
+            if (!success || this.Error != null) { break; }
+            state.IndexPositionAndSyntax++;
+        }
+
+        return (true, state);
+    }
+
+    private (bool success, ParseRegionState state) parseRegionsImplRegionDirectiveTrivia(
+        SyntaxTrivia currentTrivia,
+        ParseRegionState state,
+        CancellationToken cancellationToken) {
+        if (currentTrivia.IsDirective) {
+            //var location = currentTrivia.GetLocation();
+
+            var structure = (DirectiveTriviaSyntax)currentTrivia.GetStructure()!;
+            if (structure is RegionDirectiveTriviaSyntax regionDirective) {
+                if (!regionDirective.EndOfDirectiveToken.IsMissing) {
+                    var location = regionDirective.GetLocation();
+
+                    var regionText = regionDirective.EndOfDirectiveToken.ToFullString().AsSpan();
+                    if (MacroParser.TryGetRegionBlockStart(regionText, out var commentMacroText)) {
+                        MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
+                        var positionStart = regionDirective.FullSpan.Start;
+                        this.addRegionConst(_FullText, state.TextStart, positionStart);
+                        var regionStart = new RegionStart(macroText.ToString(), locationTag, regionDirective, location);
+                        if (this.addRegionStart(regionStart, location)) {
+                            state = state with { TextStart = regionDirective.FullSpan.End };
+                            return (true, state);
+                        } else {
+                            return (false, state);
+                        }
+                    }
+                }
+            }
+        }
+        return (true, state);
+    }
+
+    private (bool success, ParseRegionState state) parseRegionsImplEndRegionDirectiveTrivia(
+        SyntaxTrivia currentTrivia,
+        ParseRegionState state,
+        CancellationToken cancellationToken) {
+        if (currentTrivia.IsDirective) {
+            // var location = currentTrivia.GetLocation();
+            var structure = (DirectiveTriviaSyntax)currentTrivia.GetStructure()!;
+            if (structure is EndRegionDirectiveTriviaSyntax endRegionDirective) {
+                var location = endRegionDirective.GetLocation();
+                var positionStart = endRegionDirective.FullSpan.Start;
+                this.addRegionConst(_FullText, state.TextStart, positionStart);
+                state = state with { TextStart = endRegionDirective.FullSpan.End };
+
+                string regionText;
+                if (endRegionDirective.EndOfDirectiveToken.IsMissing) {
+                    regionText = string.Empty;
+                } else {
+                    var fullSpan = endRegionDirective.EndOfDirectiveToken.FullSpan;
+                    regionText = this._FullText.Substring(fullSpan.Start, fullSpan.Length);
+                }
+                if (MacroParser.TryGetRegionBlockEnd(regionText.AsSpan(), out var macroText, out var locationTag)) {
+                    var regionEnd = new RegionEnd(macroText.ToString(), locationTag, endRegionDirective, location);
+                    var success = this.addRegionEnd(regionEnd, location, _SyntaxTree, _SyntaxTreeRoot);
+                    return (success, state);
+                }
+            }
+        }
+        return (true, state);
+    }
+
+    private (bool success, ParseRegionState state) parseRegionsImplMultiLineCommentTrivia(
+        SyntaxTrivia currentTrivia,
+        ParseRegionState state,
+        CancellationToken cancellationToken) {
+        var location = currentTrivia.GetLocation();
+        ReadOnlySpan<char> commentText = _FullText.AsSpan(currentTrivia.FullSpan.Start, currentTrivia.FullSpan.Length);
+        var kind = MacroParser.TryGetMultiLineComment(commentText, out var commentMacroText);
+        switch (kind) {
+            case 1: {
+                var positionStart = currentTrivia.FullSpan.Start;
+                this.addRegionConst(_FullText, state.TextStart, positionStart);
+                state = state with { TextStart = positionStart + currentTrivia.FullSpan.Length };
+
+                MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
+                var regionStart = new RegionStart(macroText.ToString(), locationTag, currentTrivia, location);
+                var success = this.addRegionStart(regionStart, location);
+                return (success, state);
+            }
+
+            case 2: {
+                var positionStart = currentTrivia.FullSpan.Start;
+                this.addRegionConst(_FullText, state.TextStart, positionStart);
+                state = state with { TextStart = positionStart + currentTrivia.FullSpan.Length };
+
+                MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
+                var regionEnd = new RegionEnd(macroText.ToString(), locationTag, currentTrivia, location);
+                var success = this.addRegionEnd(regionEnd, location, _SyntaxTree, _SyntaxTreeRoot);
+                return (success, state);
+            }
+
+            default:
+                this.Error = "Error";
+                return (false, state);
+        }
+    }
+
+    private (bool success, ParseRegionState state) parseRegionsImplNodeAttribute(
+        SyntaxNode node,
+        AttributeSyntax attribute,
+        ParseRegionState state,
+        CancellationToken cancellationToken) {
+        //        PropertyDeclarationSyntax? propertyDeclarationSyntax = node as PropertyDeclarationSyntax;
+
+        // ClassDeclarationSyntax x;
+        var location = node.GetLocation();
+        var positionStart = node.FullSpan.Start;
+        this.addRegionConst(_FullText, state.TextStart, positionStart);
+        state = state with { TextStart = positionStart };
+
+        var (s, e) = getRangeNodeAttribute(node, attribute, state, cancellationToken);
+
+        var childNodes = node.ChildNodes().ToList();
+        var regionStart = new RegionStart(
+            null,
+            new LocationTag(),
+            attribute,
+            node,
+            location
+        );
+        this.addRegionStart(regionStart, location);
+
+        var lastNode = node.GetLastToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+        if (lastNode.RawKind == 0) {
+
+        } else {
+            var innerPositionEnd = lastNode.GetLocation().SourceSpan.End;
+        }
+
+        var positionEnd = node.FullSpan.End;
+        // is their a PositionAndSyntax between positionStart and positionEnd
+        var nextIndex = state.IndexPositionAndSyntax + 1;
+        if (nextIndex < state.ListPositionAndSyntax.Count) {
+            var itemPositionAndSyntax = state.ListPositionAndSyntax[state.IndexPositionAndSyntax];
+            var itemPosition = itemPositionAndSyntax.Position;
+            if (positionStart < itemPosition && itemPosition < positionEnd) {
+                var stateNext = state with { TextEnd = positionEnd };
+                var (success, stateAfter) = this.parseRegionsImpl(stateNext, cancellationToken);
+                if (!success) { return (false, stateAfter); }
+                state = stateAfter;
             }
         }
 
-        this.addRegionConst(fullText, position, fullText.Length);
+        state = state with { TextStart = positionEnd };
+        var regionEnd = new RegionEnd(
+            Text: null,
+            LocationTag: new LocationTag(),
+            location
+        );
+        this.addRegionEnd(regionEnd, location, _SyntaxTree, _SyntaxTreeRoot);
+        return (true, state);
+    }
 
-        if (0 != this._StackRegionBlock.Count) {
-            this.Error = "Unbalaced";
+    private (int s, int e) getRangeNodeAttribute(SyntaxNode node, AttributeSyntax attribute, ParseRegionState state, CancellationToken cancellationToken) {
+        var nodeFullSpan = node.FullSpan;
+        var lastTokenSpan = node.GetLastToken().Span;
+
+        if (node is PropertyDeclarationSyntax propertyDeclarationSyntax) {
+            var s = propertyDeclarationSyntax.Identifier.Span.End;
+            var e = propertyDeclarationSyntax.GetLastToken().Span.End;
+            return (s, e);
         }
-
-        return CreateResult();
-
-        ParseRegionsResult CreateResult() { 
-            var root= this._StackRegionBlock.Pop();
-            var result = new DocumentRegionTree(FilePath, root.Children);
-            return new ParseRegionsResult(result, this._RegionBlockAtLocation, this.Error);
-        }
+        return (0, 0);
     }
 }
 
-internal record class PositionAndSyntax(
+public sealed record class PositionAndSyntax(
     int Position,
     SyntaxTrivia? SyntaxTrivia,
     AttributeSyntax? Attribute,

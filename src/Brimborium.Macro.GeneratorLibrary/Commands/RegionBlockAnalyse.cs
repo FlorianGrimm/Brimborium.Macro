@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Brimborium.Macro.Model;
+using System.Collections.Immutable;
 
 namespace Brimborium.Macro.Commands;
 
@@ -49,7 +50,10 @@ public static class RegionBlockAnalyse {
 
         RegionBlockInformation CreateEmpty() {
             return new RegionBlockInformation(
-                RegionBlock: regionBlock,
+                Start: regionBlock.Start,
+                Children: [], // TODO regionBlock.Children,
+                End: regionBlock.End,
+                Error:regionBlock.Error,
                 Node: default,
                 Identifier: default,
                 Type: default
@@ -63,14 +67,20 @@ public static class RegionBlockAnalyse {
         if (node is PropertyDeclarationSyntax propertyDeclarationSyntax) {
             var identifier = propertyDeclarationSyntax.Identifier;
             return new RegionBlockInformation(
-                        RegionBlock: regionBlock,
+                        Start: regionBlock.Start,
+                        Children: [], // TODO regionBlock.Children,
+                        End: regionBlock.End,
+                        Error: regionBlock.Error,
                         Node: propertyDeclarationSyntax,
                         Identifier: identifier,
                         Type: propertyDeclarationSyntax.Type
                     );
         }
         return new RegionBlockInformation(
-            RegionBlock: regionBlock,
+                Start: regionBlock.Start,
+                Children: [], // TODO regionBlock.Children,
+                End: regionBlock.End,
+                Error: regionBlock.Error,
             Node: default,
             Identifier: default,
             Type: default
