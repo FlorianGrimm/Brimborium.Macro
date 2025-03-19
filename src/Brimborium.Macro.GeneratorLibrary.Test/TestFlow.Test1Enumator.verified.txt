@@ -1,0 +1,42 @@
+﻿{
+  hsDocuments: [
+    a,
+    b,
+    d,
+    e,
+    f
+  ],
+  dictListProjectByDocument: [
+    {
+      Document: a,
+      Projects: [
+        1
+      ]
+    },
+    {
+      Document: b,
+      Projects: [
+        1
+      ]
+    },
+    {
+      Document: f,
+      Projects: [
+        1,
+        2
+      ]
+    },
+    {
+      Document: d,
+      Projects: [
+        2
+      ]
+    },
+    {
+      Document: e,
+      Projects: [
+        2
+      ]
+    }
+  ]
+}

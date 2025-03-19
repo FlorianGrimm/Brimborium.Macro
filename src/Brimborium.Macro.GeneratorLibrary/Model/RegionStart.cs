@@ -22,7 +22,7 @@ public record struct RegionStart(
     string? Text,
     LocationTag LocationTag,
     SyntaxNodeType Kind,
-    SyntaxTrivia? SyntaxTrivia,
+    Nullable<SyntaxTrivia> SyntaxTrivia,
     RegionDirectiveTriviaSyntax? RegionDirective,
     AttributeSyntax? Attribute,
     SyntaxNode? SyntaxNode,
