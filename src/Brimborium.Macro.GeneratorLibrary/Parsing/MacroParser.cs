@@ -8,6 +8,24 @@ public static class MacroParser {
     public static readonly string TextMacro = "Macro";
     public static readonly string TextEndMacro = "EndMacro";
 
+    /// <summary>
+    /// Attempts to parse a multi-line comment to identify macro-related content.
+    /// </summary>
+    /// <param name="commentText">The text content to parse, potentially containing a macro comment.</param>
+    /// <param name="macroText">When the method returns, contains the extracted macro text if found, or an empty span if not found.</param>
+    /// <returns>
+    /// An integer indicating the parsing result:
+    /// - 0: No valid macro content found or empty macro
+    /// - 1: Found a macro start marker with content
+    /// - 2: Found a macro end marker
+    /// </returns>
+    /// <remarks>
+    /// The method looks for comments in the format:
+    /// - Macro start: /* Macro [content] */
+    /// - Macro end: /* EndMacro [content] */
+    /// 
+    /// The method trims whitespace and validates the comment structure before extracting the macro content.
+    /// </remarks>
     public static int TryGetMultiLineComment(ReadOnlySpan<char> commentText, out ReadOnlySpan<char> macroText) {
         MacroParser.TrimLeftWhitespaceWithNewLine(ref commentText);
         MacroParser.TrimRightWhitespaceWithNewLine(ref commentText);
@@ -40,6 +58,28 @@ public static class MacroParser {
         return 0;
     }
 
+    /// <summary>
+    /// Attempts to parse a region block start marker to identify macro-related content.
+    /// </summary>
+    /// <param name="regionText">The text content to parse, potentially containing a macro region start marker.</param>
+    /// <param name="macroText">When the method returns, contains the extracted macro text if found, or an empty span if not found.</param>
+    /// <returns>
+    /// <c>true</c> if a valid macro region start marker was found and parsed successfully; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// The method processes region markers in the format:
+    /// #region Macro [content]
+    /// 
+    /// Processing steps:
+    /// 1. Trims leading whitespace (excluding newlines)
+    /// 2. Checks for and removes the "Macro" keyword
+    /// 3. Trims remaining whitespace
+    /// 4. Returns the remaining content if any exists
+    /// </remarks>
+    /// <example>
+    /// Input: "  Macro MyMacro Param1 Param2  "
+    /// Output: macroText = "MyMacro Param1 Param2", returns true
+    /// </example>
     public static bool TryGetRegionBlockStart(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText) {
         MacroParser.TrimLeftWhitespaceNoNewLine(ref regionText);
         if (MacroParser.TrimLeftText(ref regionText, MacroParser.TextMacro.AsSpan())) {
@@ -54,6 +94,32 @@ public static class MacroParser {
         return false;
     }
 
+    /// <summary>
+    /// Splits a location tag from a region block end marker and extracts both the macro text and location information.
+    /// </summary>
+    /// <param name="regionText">The text content to parse, potentially containing a macro region end marker.</param>
+    /// <param name="macroText">When the method returns, contains the extracted macro text if found, or an empty span if not found.</param>
+    /// <param name="locationTag">When the method returns, contains the parsed location tag information if found, or an empty location tag if not found.</param>
+    /// <returns>
+    /// <c>true</c> if the parsing operation completed successfully (even if no EndMacro marker was found); otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// The method processes region end markers in the format:
+    /// #endregion EndMacro [content] [#LineNumber]
+    /// 
+    /// Processing steps:
+    /// 1. Trims leading whitespace (excluding newlines)
+    /// 2. Checks for and removes the "EndMacro" keyword
+    /// 3. Trims remaining whitespace from both ends
+    /// 4. Splits the remaining text into macro content and location tag
+    /// </remarks>
+    /// <example>
+    /// Input: "  EndMacro MyMacro #123  "
+    /// Output: 
+    ///   - macroText = "MyMacro"
+    ///   - locationTag = {LineNumber: 123}
+    ///   - returns true
+    /// </example>
     public static bool TryGetRegionBlockEnd(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText, out LocationTag locationTag) {
         MacroParser.TrimLeftWhitespaceNoNewLine(ref regionText);
         if (MacroParser.TrimLeftText(ref regionText, MacroParser.TextEndMacro.AsSpan())) {
