@@ -5,7 +5,7 @@
  * dotnet tool install -g verify.tool
  * 
  */
-//using Brimborium.Macro.Commands;
+using Brimborium.Macro.Commands;
 using Brimborium.Macro.Model;
 
 using Microsoft.CodeAnalysis;
@@ -29,9 +29,8 @@ public static class StaticSettingsUsage {
 
 public class VerifyChecksTests {
     [Fact]
-    public async Task Run() {
-        await VerifyChecks.Run();
-    }
+    public Task Run() =>
+        VerifyChecks.Run();
 }
 
 public static class Defaults {
@@ -46,14 +45,12 @@ public static class Defaults {
                 _VerifySettings.IgnoreMembers<Microsoft.CodeAnalysis.Location>(
                     item => item.IsInMetadata,
                     item => item.IsInSource);
-                /*
                 _VerifySettings.IgnoreMembers<RegionBlockInformation>(
                     item => item.Node,
                     item => item.Identifier,
                     item => item.Type
                 );
-                */
-                _VerifySettings.IgnoreMembers <MacroRegionStart>(
+                _VerifySettings.IgnoreMembers<RegionStart>(
                     //item => item.SyntaxTrivia,
                     //item => item.RegionDirective,
                     item => item.Attribute,
@@ -61,7 +58,7 @@ public static class Defaults {
                     item => item.HasValue,
                     item => item.IsEmpty
                 );
-                _VerifySettings.IgnoreMembers<MacroRegionEnd>(
+                _VerifySettings.IgnoreMembers<RegionEnd>(
                     item => item.SyntaxTrivia,
                     item => item.RegionDirective,
                     item => item.HasValue,
