@@ -6,43 +6,67 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+using Brimborium.Macro.Service;
+
 namespace Brimborium.Macro.CliLibrary;
 
-public class MacroApplication
-{
+/// <summary>
+/// Represents the main application for the Macro CLI.
+/// </summary>
+public class MacroApplication {
+    /// <summary>
+    /// Gets the targets for the application.
+    /// </summary>
     public Targets AppTargets { get; }
 
-    public MacroApplication()
-    {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MacroApplication"/> class.
+    /// </summary>
+    public MacroApplication() {
         this.AppTargets = new Targets();
     }
 
-    public static async Task<int> Run<TProgram>(
+    /// <summary>
+    /// Runs the application asynchronously.
+    /// </summary>
+    /// <typeparam name="TProgram">The type of the program.</typeparam>
+    /// <param name="args">The command line arguments.</param>
+    /// <param name="configureApplication">An optional action to configure the application.</param>
+    /// <param name="configureCLA">An optional action to configure the command line application.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the exit code.</returns>
+    public static async Task<int> RunAsync<TProgram>(
         string[] args,
         Action<HostApplicationBuilder>? configureApplication = default,
         Action<CommandLineApplication<TProgram>>? configureCLA = default)
-        where TProgram : class
-    {
+        where TProgram : class {
+        Microsoft.Extensions.Hosting.IHost? app=null;
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(args);
         builder.Services.AddSingleton<MacroApplication>();
+        builder.Services.AddMacro(builder.Configuration);
         builder.UseCommandLineApplication<TProgram>(
             args: args,
-            configure: (CommandLineApplication<TProgram> cla) =>
-        {
-            if (configureCLA is { }) { configureCLA(cla); }
-            MacroApplication.PostConfigure(args, cla);
-        });
+            configure: (CommandLineApplication<TProgram> cla) => {
+                if (configureCLA is { }) { configureCLA(cla); }
+                MacroApplication.PostConfigure(args, cla);
+            });
 
         if (configureApplication is { }) { configureApplication(builder); }
 
-        var app = builder.Build();
+        app = builder.Build();
         var result = await app.RunCommandLineApplicationAsync();
         return result;
     }
 
-    private static void PostConfigure<TProgram>(string[] args, CommandLineApplication<TProgram> cla)
-        where TProgram : class
-    {
+    /// <summary>
+    /// Configures the command line application after initial configuration.
+    /// </summary>
+    /// <typeparam name="TProgram">The type of the program.</typeparam>
+    /// <param name="args">The command line arguments.</param>
+    /// <param name="cla">The command line application.</param>
+    private static void PostConfigure<TProgram>(
+        string[] args,
+        CommandLineApplication<TProgram> cla)
+        where TProgram : class {
         var macroApplication = cla.GetRequiredService<MacroApplication>();
 
         if (macroApplication.AppTargets.GetTargetByName("parseCore") is null) {
@@ -60,25 +84,26 @@ public class MacroApplication
         if (macroApplication.AppTargets.GetTargetByName("write") is null) {
             macroApplication.AppTargets.Add("write", [], () => { });
         }
-        if (macroApplication.AppTargets.GetTargetByName("build") is null) { 
+        if (macroApplication.AppTargets.GetTargetByName("build") is null) {
             macroApplication.AppTargets.Add("build", ["parse", "loadData", "transformData", "write"], () => { });
         }
         if (macroApplication.AppTargets.GetTargetByName("watch") is null) {
             macroApplication.AppTargets.Add("watch", ["parse"], () => { });
         }
         if (macroApplication.AppTargets.GetTargetByName("default") is null) {
-            macroApplication.AppTargets.Add("default", ["build"], () => { });
+            macroApplication.AppTargets.Add("default", ["build"], () => { 
+                //cla.GetRequiredService<>
+            });
         }
 
-
+        // add the targets to the command line application
         cla.Argument<string>("targets", "A list of targets to run or list. If not specified, the \"default\" target will be run, or all targets will be listed.", multipleValues: true);
-        foreach (var (aliases, description) in Options.Definitions)
-        {
+        foreach (var (aliases, description) in Options.Definitions) {
             _ = cla.Option(string.Join("|", aliases), description, CommandOptionType.NoValue);
         }
 
-        cla.OnExecuteAsync(async (CancellationToken cancellationToken) =>
-        {
+        // set the handler for the command line application
+        cla.OnExecuteAsync(async (CancellationToken cancellationToken) => {
             var targets = cla.Arguments[0].Values.OfType<string>();
             var options = new Options(
                 Options.Definitions.Select(

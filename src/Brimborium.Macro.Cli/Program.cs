@@ -9,7 +9,7 @@ namespace Brimborium.Macro.CliLibrary;
 public class Program
 {
     public static async Task<int> Main(string[] args)
-        => await MacroApplication.Run<Program>(
+        => await MacroApplication.RunAsync<Program>(
             args: args,
             configureApplication: (builder) =>
             {

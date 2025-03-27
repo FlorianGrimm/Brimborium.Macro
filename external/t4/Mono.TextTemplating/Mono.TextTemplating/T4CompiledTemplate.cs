@@ -1,3 +1,5 @@
+#pragma warning disable CS0649 // HACK
+
 //
 // CompiledTemplate.cs
 //
