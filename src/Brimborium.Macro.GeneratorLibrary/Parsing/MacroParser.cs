@@ -133,18 +133,57 @@ public static class MacroParser {
         return true;
     }
 
-    public static bool TrimLeftText(ref ReadOnlySpan<char> text, ReadOnlySpan<char> lookingFor) {
-        if (!text.StartsWith(lookingFor, StringComparison.OrdinalIgnoreCase)) { return false; }
+    /// <summary>
+    /// Attempts to trim a specified text sequence from the beginning of a span.
+    /// </summary>
+    /// <param name="text">The span to process. If trimming succeeds, contains the remaining text after removing the target sequence.</param>
+    /// <param name="lookingFor">The text sequence to look for and remove from the start of the span.</param>
+    /// <param name="comparisonType">The type of comparison to use. Defaults to Ordinal case-insensitive comparison.</param>
+    /// <returns>
+    /// <c>true</c> if the text sequence was found and trimmed; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// If the sequence is found, it is removed from the start of the span,
+    /// and the remaining text is returned in the <paramref name="text"/> parameter.
+    /// </remarks>
+    /// <example>
+    /// var span = "MacroTest".AsSpan();
+    /// TrimLeftText(ref span, "Macro".AsSpan()) -> returns true, span becomes "Test"
+    /// </example>
+    public static bool TrimLeftText(ref ReadOnlySpan<char> text, ReadOnlySpan<char> lookingFor, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase) {
+        if (!text.StartsWith(lookingFor, comparisonType)) { return false; }
         text = text.Slice(lookingFor.Length);
         return true;
     }
 
-    public static bool TrimRightText(ref ReadOnlySpan<char> text, ReadOnlySpan<char> lookingFor) {
-        if (!text.EndsWith(lookingFor, StringComparison.OrdinalIgnoreCase)) { return false; }
+    /// <summary>
+    /// Attempts to trim a specified text sequence from the end of a span.
+    /// </summary>
+    /// <param name="text">The span to process. If trimming succeeds, contains the remaining text after removing the target sequence.</param>
+    /// <param name="lookingFor">The text sequence to look for and remove from the end of the span.</param>
+    /// <param name="comparisonType">The type of string comparison to use. Defaults to Ordinal case-insensitive comparison.</param>
+    /// <returns>
+    /// <c>true</c> if the text sequence was found and trimmed from the end; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// If the sequence is found at the end of the span, it is removed,
+    /// and the remaining text is returned in the <paramref name="text"/> parameter.
+    /// </remarks>
+    /// <example>
+    /// var span = "TestMacro".AsSpan();
+    /// TrimRightText(ref span, "Macro".AsSpan()) -> returns true, span becomes "Test"
+    /// </example>
+    public static bool TrimRightText(ref ReadOnlySpan<char> text, ReadOnlySpan<char> lookingFor, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase) {
+        if (!text.EndsWith(lookingFor, comparisonType)) { return false; }
         text = text[..^(lookingFor.Length)];
         return true;
     }
 
+    /// <summary>
+    /// Trims whitespace characters (excluding newlines) from the left side of the span.
+    /// </summary>
+    /// <param name="text">The span of characters to trim.</param>
+    /// <returns><c>true</c> if any characters were trimmed; otherwise, <c>false</c>.</returns>
     public static bool TrimLeftWhitespaceNoNewLine(ref ReadOnlySpan<char> text) {
         bool result = false;
         while ((text.Length > 0)
@@ -155,6 +194,11 @@ public static class MacroParser {
         }
         return result;
     }
+    /// <summary>
+    /// Trims all whitespace characters (including newlines) from the left side of the span.
+    /// </summary>
+    /// <param name="text">The span of characters to trim.</param>
+    /// <returns><c>true</c> if any characters were trimmed; otherwise, <c>false</c>.</returns>
     public static bool TrimLeftWhitespaceWithNewLine(ref ReadOnlySpan<char> text) {
         bool result = false;
         while ((text.Length > 0)
@@ -165,6 +209,11 @@ public static class MacroParser {
         return result;
     }
 
+    /// <summary>
+    /// Trims whitespace characters (excluding newlines) from the right side of the span.
+    /// </summary>
+    /// <param name="text">The span of characters to trim.</param>
+    /// <returns><c>true</c> if any characters were trimmed; otherwise, <c>false</c>.</returns>
     public static bool TrimRightWhitespaceNoNewLine(ref ReadOnlySpan<char> text) {
         bool result = false;
         while ((text.Length > 0)
@@ -177,6 +226,11 @@ public static class MacroParser {
         return result;
     }
 
+    /// <summary>
+    /// Trims all whitespace characters (including newlines) from the right side of the span.
+    /// </summary>
+    /// <param name="text">The span of characters to trim.</param>
+    /// <returns><c>true</c> if any characters were trimmed; otherwise, <c>false</c>.</returns>
     public static bool TrimRightWhitespaceWithNewLine(ref ReadOnlySpan<char> text) {
         bool result = false;
         while ((text.Length > 0)
@@ -189,6 +243,14 @@ public static class MacroParser {
         return result;
     }
 
+    /// <summary>
+    /// Extracts the leftmost sequence of non-whitespace characters from the span.
+    /// </summary>
+    /// <param name="text">The span to process. After the operation, contains the remaining text after the extracted portion.</param>
+    /// <returns>A span containing the extracted non-whitespace characters.</returns>
+    /// <remarks>
+    /// After extraction, the remaining text is trimmed of leading whitespace (excluding newlines).
+    /// </remarks>
     public static ReadOnlySpan<char> LeftUntilWhitespace(ref ReadOnlySpan<char> text) {
         int idx = 0;
         while (idx < text.Length) {
@@ -209,6 +271,11 @@ public static class MacroParser {
         }
     }
 
+    /// <summary>
+    /// Determines if a character is whitespace but not a newline character.
+    /// </summary>
+    /// <param name="value">The character to check.</param>
+    /// <returns><c>true</c> if the character is whitespace but not a newline; otherwise, <c>false</c>.</returns>
     public static bool IsWhitespaceNotNewLine(char value)
         => (value) switch {
             ' ' => true,
@@ -218,17 +285,34 @@ public static class MacroParser {
             _ => char.IsWhiteSpace(value)
         };
 
+    /// <summary>
+    /// Determines if a newline is needed between two strings.
+    /// </summary>
+    /// <param name="stringBefore">The string before the potential newline.</param>
+    /// <param name="stringAfter">The string after the potential newline.</param>
+    /// <returns><c>true</c> if a newline is needed; otherwise, <c>false</c>.</returns>
+    /// <remarks>
+    /// A newline is needed if:
+    /// - Both strings are non-empty
+    /// - Neither string ends/starts with a newline character
+    /// </remarks>
     public static bool NeedNewLine(string stringBefore, string stringAfter) {
         if (string.IsNullOrEmpty(stringBefore)) { return false; }
         if (string.IsNullOrEmpty(stringAfter)) { return false; }
         var charBeforeLast = stringBefore[stringBefore.Length - 1];
-        var charAfterFirst = stringAfter[stringAfter.Length - 1];
+        var charAfterFirst = stringAfter[0];
         if (charBeforeLast is '\r' or '\n') { return false; }
         if (charAfterFirst is '\r' or '\n') { return false; }
         return true;
     }
 
-    public static int GotoLeftWhileWhitespace(string value, int index) {
+    /// <summary>
+    /// Moves the index left while encountering whitespace characters (excluding newlines).
+    /// </summary>
+    /// <param name="value">The string to traverse.</param>
+    /// <param name="index">The starting index.</param>
+    /// <returns>The new index position after moving left through whitespace.</returns>
+    public static int GotoLeftWhileWhitespaceNotNewLine(string value, int index) {
         while (0 < index) {
             if (MacroParser.IsWhitespaceNotNewLine(value[index - 1])) {
                 index--;
@@ -239,6 +323,15 @@ public static class MacroParser {
         return index;
     }
 
+    /// <summary>
+    /// Moves the index left if newline characters are encountered.
+    /// </summary>
+    /// <param name="value">The string to traverse.</param>
+    /// <param name="index">The starting index.</param>
+    /// <returns>The new index position after moving past any newline characters.</returns>
+    /// <remarks>
+    /// Handles both '\r\n' and '\n' line endings.
+    /// </remarks>
     public static int GotoLeftIfNewline(string value, int index) {
         if (0 < index && value[index - 1] == '\n') {
             index--;
@@ -249,13 +342,28 @@ public static class MacroParser {
         return index;
     }
 
-    public static int GotoRightWhileWhitespace(string value, int index) {
+    /// <summary>
+    /// Moves the index right while encountering whitespace characters (excluding newlines).
+    /// </summary>
+    /// <param name="value">The string to traverse.</param>
+    /// <param name="index">The starting index.</param>
+    /// <returns>The new index position after moving right through whitespace.</returns>
+    public static int GotoRightWhileWhitespaceNotNewLine(string value, int index) {
         while (index < value.Length && MacroParser.IsWhitespaceNotNewLine(value[index])) {
             index++;
         }
         return index;
     }
 
+    /// <summary>
+    /// Moves the index right if newline characters are encountered.
+    /// </summary>
+    /// <param name="value">The string to traverse.</param>
+    /// <param name="index">The starting index.</param>
+    /// <returns>The new index position after moving past any newline characters.</returns>
+    /// <remarks>
+    /// Handles both '\r\n' and '\n' line endings.
+    /// </remarks>
     public static int GotoRightIfNewline(string value, int index) {
         if (index < value.Length && value[index] == '\r') {
             index++;
@@ -266,9 +374,21 @@ public static class MacroParser {
         return index;
     }
 
-    private static char[] _NewLines = "\r\n".ToCharArray();
-    private static char[] _Whitespaces = "\r\n\t ".ToCharArray();
+    private static readonly char[] _NewLines = "\r\n".ToCharArray();
+    private static readonly char[] _Whitespaces = "\r\n\t ".ToCharArray();
 
+    /// <summary>
+    /// Compares two strings line by line, ignoring whitespace differences.
+    /// </summary>
+    /// <param name="stringPrevMacroContent">The previous macro content.</param>
+    /// <param name="stringNextMacroContent">The next macro content.</param>
+    /// <returns><c>true</c> if the contents are equivalent; otherwise, <c>false</c>.</returns>
+    /// <remarks>
+    /// The comparison:
+    /// - Trims whitespace from the start and end of each line
+    /// - Ignores empty lines
+    /// - Maintains line-by-line ordering
+    /// </remarks>
     public static bool EqualsLines(string stringPrevMacroContent, string stringNextMacroContent) {
         if (string.Equals(stringPrevMacroContent, stringNextMacroContent, StringComparison.Ordinal)) {
             return true;
@@ -324,6 +444,16 @@ public static class MacroParser {
         return spanPrevMacroContent.IsEmpty && spanNextMacroContent.IsEmpty;
     }
 
+    /// <summary>
+    /// Splits a string into macro text and location tag components.
+    /// </summary>
+    /// <param name="regionText">The text to split.</param>
+    /// <param name="macroText">When the method returns, contains the macro text portion.</param>
+    /// <param name="locationTag">When the method returns, contains the parsed location tag.</param>
+    /// <returns><c>true</c> if a location tag was found and parsed; otherwise, <c>false</c>.</returns>
+    /// <remarks>
+    /// The location tag is identified by the last '#' character in the text.
+    /// </remarks>
     public static bool SplitLocationTag(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText, out LocationTag locationTag) {
         // split the regionText into macroText and locationTag - the separator is the last # character.
         int index = regionText.LastIndexOf('#');
@@ -339,6 +469,14 @@ public static class MacroParser {
         return false;
     }
 
+    /// <summary>
+    /// Parses a location tag from the given text.
+    /// </summary>
+    /// <param name="locationText">The text to parse as a location tag.</param>
+    /// <returns>A <see cref="LocationTag"/> instance containing the parsed information.</returns>
+    /// <remarks>
+    /// Returns a LocationTag with line number 0 if parsing fails.
+    /// </remarks>
     public static LocationTag ParseLocationTag(ReadOnlySpan<char> locationText) {
         if (int.TryParse(locationText, out int line)) {
             return new LocationTag(null, line);
