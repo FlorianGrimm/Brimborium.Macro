@@ -1,18 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\Brimborium.Macro.GeneratorLibrary\Brimborium.Macro.GeneratorLibrary.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="McMaster.Extensions.Hosting.CommandLine\" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\external\Mediator\src\Mediator\Mediator.csproj" />
+    <ProjectReference Include="..\Brimborium.Macro.GeneratorLibrary\Brimborium.Macro.GeneratorLibrary.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+  </ItemGroup>
 </Project>

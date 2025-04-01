@@ -1,30 +1,27 @@
 ﻿using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.Extensions.Options;
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Brimborium.Macro.Service;
-public class WorkspaceServiceOptions {
 
-}
-
+/*
+ * once if needed
+public class WorkspaceServiceOptions {}
+*/
 public class WorkspaceService {
     public WorkspaceService() {
-        this.Options = new WorkspaceServiceOptions();
     }
 
+    /*
+        this.Options = new WorkspaceServiceOptions();
     public WorkspaceService(IOptions<WorkspaceServiceOptions> options) {
         this.Options = options.Value;
     }
 
     public WorkspaceServiceOptions Options { get; set; }
+    */
 
     private VisualStudioInstance? _VisualStudioInstance;
 

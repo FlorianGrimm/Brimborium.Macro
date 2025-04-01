@@ -7,6 +7,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using Brimborium.Macro.Service;
+using Mediator;
+using Brimborium.Macro.CliLibrary.Command;
+using Brimborium.Macro.CliLibrary.Service;
 
 namespace Brimborium.Macro.CliLibrary;
 
@@ -39,10 +42,11 @@ public class MacroApplication {
         Action<HostApplicationBuilder>? configureApplication = default,
         Action<CommandLineApplication<TProgram>>? configureCLA = default)
         where TProgram : class {
-        Microsoft.Extensions.Hosting.IHost? app=null;
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(args);
-        builder.Services.AddSingleton<MacroApplication>();
+
+        builder.Services.AddSingleton<StateService>();
         builder.Services.AddMacro(builder.Configuration);
+        builder.Services.AddSingleton<MacroApplication>();
         builder.UseCommandLineApplication<TProgram>(
             args: args,
             configure: (CommandLineApplication<TProgram> cla) => {
@@ -52,7 +56,8 @@ public class MacroApplication {
 
         if (configureApplication is { }) { configureApplication(builder); }
 
-        app = builder.Build();
+        var app = builder.Build();
+        app.Services.GetRequiredService<WorkspaceService>().EnsureRegisterInstance();
         var result = await app.RunCommandLineApplicationAsync();
         return result;
     }
@@ -70,7 +75,9 @@ public class MacroApplication {
         var macroApplication = cla.GetRequiredService<MacroApplication>();
 
         if (macroApplication.AppTargets.GetTargetByName("parseCore") is null) {
-            macroApplication.AppTargets.Add("parseCore", [], () => { });
+            macroApplication.AppTargets.Add("parseCore", [], async () => { 
+                var parseResponse = await cla.GetRequiredService<IMediator>().Send(new ParseRequest());
+            });
         }
         if (macroApplication.AppTargets.GetTargetByName("parse") is null) {
             macroApplication.AppTargets.Add("parse", ["parseCore"], () => { });
