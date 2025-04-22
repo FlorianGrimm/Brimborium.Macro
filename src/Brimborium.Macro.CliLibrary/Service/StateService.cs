@@ -1,10 +1,12 @@
-﻿using Brimborium.Macro.Service;
+﻿using Brimborium.Macro.Model;
+using Brimborium.Macro.Service;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,5 +34,8 @@ public class StateService {
             solution = await this._SolutionService.OpenSolutionAsync(solutionFilePath);
         }
         return solution;
+    }
+
+    public void SetProjectInfo(ImmutableDictionary<ProjectId, MacroProjectInfo> imdictProjectInfo, ImmutableArray<MacroDocumentFileInfo> imlistDocumentFileInfo) {
     }
 }

@@ -1,4 +1,5 @@
-﻿using Brimborium.Macro.Service;
+﻿using Brimborium.Macro.Parsing;
+using Brimborium.Macro.Service;
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,8 @@ public static class MacroExtensions {
         WorkspaceService workspaceService = new WorkspaceService();
         workspaceService.EnsureRegisterInstance();
         serviceDescriptors.AddSingleton<WorkspaceService>(workspaceService);
-
+        serviceDescriptors.AddSingleton<MacroRegionScanner>();
+        
         //serviceDescriptors.AddSingleton<BrainstormIdea>();
         return serviceDescriptors;
     }

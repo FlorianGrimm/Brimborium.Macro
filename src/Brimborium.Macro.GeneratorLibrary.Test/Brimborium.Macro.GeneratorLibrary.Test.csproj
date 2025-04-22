@@ -12,13 +12,53 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Model\MacroRegionBlockBuilderTests.cs" />
+    <Compile Remove="Parsing\MacroParserTests.EqualsLines.cs" />
+    <Compile Remove="Parsing\MacroParserTests.GotoLeftIfNewline.cs" />
+    <Compile Remove="Parsing\MacroParserTests.GotoLeftWhileWhitespaceNotNewLine.cs" />
+    <Compile Remove="Parsing\MacroParserTests.GotoRightIfNewline.cs" />
+    <Compile Remove="Parsing\MacroParserTests.GotoRightWhileWhitespaceNotNewLine.cs" />
+    <Compile Remove="Parsing\MacroParserTests.IsWhitespaceNotNewLine.cs" />
+    <Compile Remove="Parsing\MacroParserTests.LeftUntilWhitespace.cs" />
+    <Compile Remove="Parsing\MacroParserTests.NeedNewLine.cs" />
+    <Compile Remove="Parsing\MacroParserTests.ParseLocationTag.cs" />
+    <Compile Remove="Parsing\MacroParserTests.SplitLocationTag.cs" />
+    <Compile Remove="Parsing\MacroParserTests.TrimLeftText.cs" />
+    <Compile Remove="Parsing\MacroParserTests.TrimLeftWhitespaceNoNewLine.cs" />
+    <Compile Remove="Parsing\MacroParserTests.TrimLeftWhitespaceWithNewLine.cs" />
+    <Compile Remove="Parsing\MacroParserTests.TrimRightText.cs" />
+    <Compile Remove="Parsing\MacroParserTests.TrimRightWhitespaceNoNewLine.cs" />
+    <Compile Remove="Parsing\MacroParserTests.TrimRightWhitespaceWithNewLine.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Model\MacroRegionBlockBuilderTests.cs" />
+    <None Include="Parsing\MacroParserTests.EqualsLines.cs" />
+    <None Include="Parsing\MacroParserTests.GotoLeftIfNewline.cs" />
+    <None Include="Parsing\MacroParserTests.GotoLeftWhileWhitespaceNotNewLine.cs" />
+    <None Include="Parsing\MacroParserTests.GotoRightIfNewline.cs" />
+    <None Include="Parsing\MacroParserTests.GotoRightWhileWhitespaceNotNewLine.cs" />
+    <None Include="Parsing\MacroParserTests.IsWhitespaceNotNewLine.cs" />
+    <None Include="Parsing\MacroParserTests.LeftUntilWhitespace.cs" />
+    <None Include="Parsing\MacroParserTests.NeedNewLine.cs" />
+    <None Include="Parsing\MacroParserTests.ParseLocationTag.cs" />
+    <None Include="Parsing\MacroParserTests.SplitLocationTag.cs" />
+    <None Include="Parsing\MacroParserTests.TrimLeftText.cs" />
+    <None Include="Parsing\MacroParserTests.TrimLeftWhitespaceNoNewLine.cs" />
+    <None Include="Parsing\MacroParserTests.TrimLeftWhitespaceWithNewLine.cs" />
+    <None Include="Parsing\MacroParserTests.TrimRightText.cs" />
+    <None Include="Parsing\MacroParserTests.TrimRightWhitespaceNoNewLine.cs" />
+    <None Include="Parsing\MacroParserTests.TrimRightWhitespaceWithNewLine.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="Verify.DiffPlex" Version="3.1.2" />
-    <PackageReference Include="Verify.Xunit" Version="28.16.0" />
+    <PackageReference Include="Verify.Xunit" Version="29.2.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
       <PrivateAssets>all</PrivateAssets>

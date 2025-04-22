@@ -1,0 +1,68 @@
+﻿[
+  {
+    Position: 127,
+    SyntaxTrivia: {
+      Kind: MultiLineCommentTrivia,
+      Span: {
+        Start: 127,
+        Length: 18
+      },
+      ToString: /* Macro TestMe */
+    }
+  },
+  {
+    Position: 194,
+    SyntaxTrivia: {
+      Kind: MultiLineCommentTrivia,
+      Span: {
+        Start: 194,
+        Length: 14
+      },
+      ToString: /* EndMacro */
+    }
+  },
+  {
+    Position: 216,
+    SyntaxTrivia: {
+      Kind: MultiLineCommentTrivia,
+      Span: {
+        Start: 216,
+        Length: 22
+      },
+      ToString: /* Macro TestMe #10 */
+    }
+  },
+  {
+    Position: 304,
+    SyntaxTrivia: {
+      Kind: MultiLineCommentTrivia,
+      Span: {
+        Start: 304,
+        Length: 18
+      },
+      ToString: /* EndMacro #10 */
+    }
+  },
+  {
+    Position: 330,
+    SyntaxTrivia: {
+      Kind: RegionDirectiveTrivia,
+      Span: {
+        Start: 330,
+        Length: 24
+      },
+      ToString: #region Macro TestMe #20
+    }
+  },
+  {
+    Position: 411,
+    SyntaxTrivia: {
+      Kind: EndRegionDirectiveTrivia,
+      Span: {
+        Start: 411,
+        Length: 14
+      },
+      ToString: #endregion #20
+    }
+  }
+]

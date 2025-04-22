@@ -1,3 +1,5 @@
+using Brimborium.Text;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,7 @@ public partial class MacroParserTests {
         var text1 = "line1\nline2\nline3";
         var text2 = "line1\nline2\nline3";
         
-        Assert.True(MacroParser.EqualsLines(text1, text2));
+        Assert.True(ParserUtility.EqualsLines(text1, text2));
     }
 
     [Fact]
@@ -20,7 +22,7 @@ public partial class MacroParserTests {
         var text1 = "  line1  \n   line2\nline3   ";
         var text2 = "line1\nline2\nline3";
         
-        Assert.True(MacroParser.EqualsLines(text1, text2));
+        Assert.True(ParserUtility.EqualsLines(text1, text2));
     }
 
     [Fact]
@@ -28,7 +30,7 @@ public partial class MacroParserTests {
         var text1 = "line1\r\nline2\rline3\n";
         var text2 = "line1\nline2\nline3";
         
-        Assert.True(MacroParser.EqualsLines(text1, text2));
+        Assert.True(ParserUtility.EqualsLines(text1, text2));
     }
 
     [Fact]
@@ -36,7 +38,7 @@ public partial class MacroParserTests {
         var text1 = "line1\n\nline3";
         var text2 = "line1\nline3";
         
-        Assert.True(MacroParser.EqualsLines(text1, text2));
+        Assert.True(ParserUtility.EqualsLines(text1, text2));
     }
 
     [Fact]
@@ -44,7 +46,7 @@ public partial class MacroParserTests {
         var text1 = "line1\nline2\nline3";
         var text2 = "line1\ndifferent\nline3";
         
-        Assert.False(MacroParser.EqualsLines(text1, text2));
+        Assert.False(ParserUtility.EqualsLines(text1, text2));
     }
 
     [Fact]
@@ -52,7 +54,7 @@ public partial class MacroParserTests {
         var text1 = "line1\nline2\nline3";
         var text2 = "line2\nline1\nline3";
         
-        Assert.False(MacroParser.EqualsLines(text1, text2));
+        Assert.False(ParserUtility.EqualsLines(text1, text2));
     }
 
     [Fact]
@@ -60,7 +62,7 @@ public partial class MacroParserTests {
         var text1 = "";
         var text2 = "";
         
-        Assert.True(MacroParser.EqualsLines(text1, text2));
+        Assert.True(ParserUtility.EqualsLines(text1, text2));
     }
 
     [Fact]
@@ -68,6 +70,6 @@ public partial class MacroParserTests {
         var text1 = "   \n  \t  \n    ";
         var text2 = "";
         
-        Assert.True(MacroParser.EqualsLines(text1, text2));
+        Assert.True(ParserUtility.EqualsLines(text1, text2));
     }
 }

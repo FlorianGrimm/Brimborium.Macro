@@ -1,4 +1,5 @@
 ﻿using Brimborium.Macro.Model;
+using Brimborium.Text;
 
 namespace Brimborium.Macro.Parsing;
 
@@ -26,17 +27,18 @@ public static class MacroParser {
     /// 
     /// The method trims whitespace and validates the comment structure before extracting the macro content.
     /// </remarks>
-    public static int TryGetMultiLineComment(ReadOnlySpan<char> commentText, out ReadOnlySpan<char> macroText) {
-        MacroParser.TrimLeftWhitespaceWithNewLine(ref commentText);
-        MacroParser.TrimRightWhitespaceWithNewLine(ref commentText);
+    public static int TryGetMultiLineComment(StringSlice commentText, out StringSlice macroText) {
+        ParserUtility.TrimLeftWhitespaceWithNewLine(ref commentText);
+        ParserUtility.TrimRightWhitespaceWithNewLine(ref commentText);
 
-        if (MacroParser.TrimLeftText(ref commentText, MacroParser.TextSlashStar.AsSpan())) {
-            if (MacroParser.TrimRightText(ref commentText, MacroParser.TextStarSlash.AsSpan())) {
-                MacroParser.TrimLeftWhitespaceNoNewLine(ref commentText);
-                MacroParser.TrimRightWhitespaceNoNewLine(ref commentText);
+        if (ParserUtility.TrimLeftText(ref commentText, MacroParser.TextSlashStar.AsSpan())) {
+            ParserUtility.TrimLeftWhitespaceNotNewLine(ref commentText);
 
-                if (MacroParser.TrimLeftText(ref commentText, MacroParser.TextMacro.AsSpan())) {
-                    MacroParser.TrimLeftWhitespaceNoNewLine(ref commentText);
+            if (ParserUtility.TrimRightText(ref commentText, MacroParser.TextStarSlash.AsSpan())) {
+                ParserUtility.TrimRightWhitespaceNotNewLine(ref commentText);
+
+                if (ParserUtility.TrimLeftText(ref commentText, MacroParser.TextMacro.AsSpan())) {
+                    ParserUtility.TrimLeftWhitespaceNotNewLine(ref commentText);
                     if (commentText.IsEmpty) {
                         macroText = commentText;
                         return 0;
@@ -46,15 +48,15 @@ public static class MacroParser {
                     }
                 }
 
-                if (MacroParser.TrimLeftText(ref commentText, MacroParser.TextEndMacro.AsSpan())) {
-                    MacroParser.TrimLeftWhitespaceNoNewLine(ref commentText);
+                if (ParserUtility.TrimLeftText(ref commentText, MacroParser.TextEndMacro.AsSpan())) {
+                    ParserUtility.TrimLeftWhitespaceNotNewLine(ref commentText);
                     macroText = commentText;
                     return 2;
                 }
             }
         }
 
-        macroText = string.Empty.AsSpan();
+        macroText = new StringSlice();
         return 0;
     }
 
@@ -80,17 +82,17 @@ public static class MacroParser {
     /// Input: "  Macro MyMacro Param1 Param2  "
     /// Output: macroText = "MyMacro Param1 Param2", returns true
     /// </example>
-    public static bool TryGetRegionBlockStart(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText) {
-        MacroParser.TrimLeftWhitespaceNoNewLine(ref regionText);
-        if (MacroParser.TrimLeftText(ref regionText, MacroParser.TextMacro.AsSpan())) {
-            MacroParser.TrimLeftWhitespaceNoNewLine(ref regionText);
-            MacroParser.TrimRightWhitespaceWithNewLine(ref regionText);
+    public static bool TryGetRegionBlockStart(StringSlice regionText, out StringSlice macroText) {
+        ParserUtility.TrimLeftWhitespaceNotNewLine(ref regionText);
+        if (ParserUtility.TrimLeftText(ref regionText, MacroParser.TextMacro.AsSpan())) {
+            ParserUtility.TrimLeftWhitespaceNotNewLine(ref regionText);
+            ParserUtility.TrimRightWhitespaceWithNewLine(ref regionText);
             if (!regionText.IsEmpty) {
                 macroText = regionText;
                 return true;
             }
         }
-        macroText = string.Empty.AsSpan();
+        macroText = new StringSlice();
         return false;
     }
 
@@ -120,18 +122,20 @@ public static class MacroParser {
     ///   - locationTag = {LineNumber: 123}
     ///   - returns true
     /// </example>
-    public static bool TryGetRegionBlockEnd(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText, out LocationTag locationTag) {
-        MacroParser.TrimLeftWhitespaceNoNewLine(ref regionText);
-        if (MacroParser.TrimLeftText(ref regionText, MacroParser.TextEndMacro.AsSpan())) {
-            MacroParser.TrimLeftWhitespaceNoNewLine(ref regionText);
-            MacroParser.TrimRightWhitespaceNoNewLine(ref regionText);
+    public static bool TryGetRegionBlockEnd(StringSlice regionText, out StringSlice macroText, out LocationTag locationTag) {
+        ParserUtility.TrimLeftWhitespaceNotNewLine(ref regionText);
+        if (ParserUtility.TrimLeftText(ref regionText, MacroParser.TextEndMacro.AsSpan())) {
+            ParserUtility.TrimLeftWhitespaceNotNewLine(ref regionText);
+            ParserUtility.TrimRightWhitespaceNotNewLine(ref regionText);
             MacroParser.SplitLocationTag(regionText, out macroText, out locationTag);
             return true;
         }
-        macroText = string.Empty.AsSpan();
+        macroText = new StringSlice();
         locationTag = new LocationTag();
         return true;
     }
+
+#if false
 
     /// <summary>
     /// Attempts to trim a specified text sequence from the beginning of a span.
@@ -444,6 +448,8 @@ public static class MacroParser {
         return spanPrevMacroContent.IsEmpty && spanNextMacroContent.IsEmpty;
     }
 
+#endif
+
     /// <summary>
     /// Splits a string into macro text and location tag components.
     /// </summary>
@@ -454,12 +460,12 @@ public static class MacroParser {
     /// <remarks>
     /// The location tag is identified by the last '#' character in the text.
     /// </remarks>
-    public static bool SplitLocationTag(ReadOnlySpan<char> regionText, out ReadOnlySpan<char> macroText, out LocationTag locationTag) {
+    public static bool SplitLocationTag(StringSlice regionText, out StringSlice macroText, out LocationTag locationTag) {
         // split the regionText into macroText and locationTag - the separator is the last # character.
-        int index = regionText.LastIndexOf('#');
+        int index = regionText.AsSpan().LastIndexOf('#');
         if (0 <= index) {
-            macroText = regionText.Slice(0, index);
-            var locationText = regionText.Slice(index + 1);
+            macroText = regionText.Substring(0, index);
+            var locationText = regionText.Substring(index + 1);
             locationTag = ParseLocationTag(locationText);
             return true;
         }
@@ -477,8 +483,8 @@ public static class MacroParser {
     /// <remarks>
     /// Returns a LocationTag with line number 0 if parsing fails.
     /// </remarks>
-    public static LocationTag ParseLocationTag(ReadOnlySpan<char> locationText) {
-        if (int.TryParse(locationText, out int line)) {
+    public static LocationTag ParseLocationTag(StringSlice locationText) {
+        if (int.TryParse(locationText.AsSpan(), out int line)) {
             return new LocationTag(null, line);
         } else {
             return new LocationTag(null, 0);

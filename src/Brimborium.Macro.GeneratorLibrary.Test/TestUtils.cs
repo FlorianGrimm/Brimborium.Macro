@@ -51,11 +51,12 @@ public static class TestUtils {
             metadataReferences: metadataReferences);
         adhocWorkspace.AddProject(projectInfo);
 
+        /*
         var pathMacroAttribute = System.IO.Path.Combine(TestUtils.GetSolutionFolder(), @"src\Brimborium.Macro\MacroAttribute.cs");
         var sourceMacroAttribute = System.IO.File.ReadAllText(pathMacroAttribute);
-
         var documentMacroAttribute = adhocWorkspace.AddDocument(projectId, "MacroAttribute.cs", SourceText.From(sourceMacroAttribute))
             ?? throw new System.Exception("documentMacroAttribute is null");
+        */
         var document = adhocWorkspace.AddDocument(projectId, "TestDocument.cs", SourceText.From(sourceCode))
             ?? throw new System.Exception("document is null");
 

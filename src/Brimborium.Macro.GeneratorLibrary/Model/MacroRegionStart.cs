@@ -1,12 +1,15 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Brimborium.Text;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using System.Diagnostics.CodeAnalysis;
 
 namespace Brimborium.Macro.Model;
 
-public record struct MacroRegionStart(
-    string? Text,
+public record class MacroRegionStart(
+    StringSlice Text,
+    StringSlice Payload,
     LocationTag LocationTag,
     SyntaxNodeType Kind,
     Nullable<SyntaxTrivia> SyntaxTrivia,
@@ -14,82 +17,83 @@ public record struct MacroRegionStart(
     AttributeSyntax? Attribute,
     SyntaxNode? SyntaxNode,
     Location? Location
-    ) {
-    public static MacroRegionStart Empty
-        => new MacroRegionStart(null, new LocationTag(null, 0), SyntaxNodeType.None, null, null, null, null, null);
+    ) : MacroRegionNode(Text, Location)
+    , IMacroRegionNode<MacroRegionStartBuilder> {
 
     /// <summary>
-    /// for SyntaxTrivia - comment
+    /// for syntaxTrivia - comment
     /// </summary>
-    /// <param name="Text">The captured text</param>
+    /// <param name="Text">The captured Text</param>
     /// <param name="LocationTag">the last part #line</param>
-    /// <param name="SyntaxTrivia">SyntaxTrivia means comment</param>
-    /// <param name="Location">the location of this text</param>
+    /// <param name="SyntaxTrivia">syntaxTrivia means comment</param>
+    /// <param name="Location">the location of this Text</param>
     public MacroRegionStart(
-        string? Text,
+        StringSlice Text,
+        StringSlice Payload,
         LocationTag LocationTag,
         SyntaxTrivia SyntaxTrivia,
         Location? Location = default)
-        : this(Text,
-              LocationTag,
+        : this(Text, Payload, LocationTag,
               SyntaxNodeType.SyntaxTrivia, SyntaxTrivia, default,
               null, null,
               Location ?? SyntaxTrivia.GetLocation()) { }
 
 
     /// <summary>
-    /// for RegionDirective - #region
+    /// for regionDirective - #region
     /// </summary>
-    /// <param name="Text">The captured text</param>
+    /// <param name="Text">The captured Text</param>
     /// <param name="LocationTag">the last part #line</param>
-    /// <param name="RegionDirective">RegionDirective means #region</param>
-    /// <param name="Location">the location of this text</param>
+    /// <param name="RegionDirective">regionDirective means #region</param>
+    /// <param name="Location">the location of this Text</param>
     public MacroRegionStart(
-        string? Text,
+        StringSlice Text,
+        StringSlice Payload,
         LocationTag LocationTag,
         RegionDirectiveTriviaSyntax RegionDirective,
         Location? Location = default)
-        : this(Text, LocationTag,
+        : this(Text, Payload, LocationTag,
               SyntaxNodeType.RegionDirectiveTriviaSyntax, default, RegionDirective,
               null, null,
               Location ?? RegionDirective.GetLocation()) { }
 
     public MacroRegionStart(
-        string? Text,
+        StringSlice Text,
+        StringSlice Payload,
         LocationTag LocationTag,
         AttributeSyntax Attribute,
         SyntaxNode SyntaxNode,
         Location? Location = default)
-        : this(Text, LocationTag,
+        : this(Text, Payload, LocationTag,
               SyntaxNodeType.AttributeSyntax, default, default,
               Attribute, SyntaxNode,
               Location ?? Attribute.GetLocation()) { }
 
     /// <summary>
-    /// Gets the parsed text associated with the start of the text.
+    /// Gets the parsed Text associated with the start of the Text.
     /// </summary>
-    public readonly string? ParsedText =>
+    public string? ParsedText =>
         this.SyntaxTrivia is { } syntaxTrivia ? syntaxTrivia.ToString()
         : this.RegionDirective is { } regionDirective ? regionDirective.ToString()
         : null;
 
     /// <summary>
-    /// Gets the file path associated with the start of the text.
+    /// Gets the file path associated with the start of the Text.
     /// </summary>
-    public readonly string? FilePath => this.Location?.SourceTree?.FilePath;
+    public string? FilePath => this.Location?.SourceTree?.FilePath;
 
     /// <summary>
-    /// Gets the line number associated with the start of the text.
+    /// Gets the line number associated with the start of the Text.
     /// </summary>
-    public readonly int Line => this.Location is { } location
+    public int Line => this.Location is { } location
         ? location.GetLineSpan().StartLinePosition.Line + 1
         : 0;
 
     /// <summary>
     /// Tries to get the syntaxTrivia associated with the start of the region block.
     /// </summary>
-    /// <param name="syntaxTrivia">the SyntaxTrivia if kind is SyntaxTrivia.</param>
-    /// <param name="location">the location of the SyntaxTrivia</param>
+    /// <param name="syntaxTrivia">the syntaxTrivia if kind is syntaxTrivia.</param>
+    /// <param name="location">the location of the syntaxTrivia</param>
     /// <returns>true if found.</returns>
     public bool TryGetSyntaxTrivia(
         [MaybeNullWhen(false)] out SyntaxTrivia syntaxTrivia,
@@ -170,12 +174,224 @@ public record struct MacroRegionStart(
         }
     }
 
-    internal MacroRegionStart ToBuilder() {
-        throw new NotImplementedException();
-    }
+    public override IMacroRegionNodeBuilder ConvertToBuilder() => this.ToBuilder();
+    public MacroRegionStartBuilder ToBuilder()
+        => new MacroRegionStartBuilder(this);
 
     public bool IsEmpty => this.Kind == SyntaxNodeType.None;
 
     public bool HasValue => !(this.Kind == SyntaxNodeType.None);
 
+}
+
+public class MacroRegionStartBuilder : MacroRegionNodeBuilder<MacroRegionStart> {
+    public MacroRegionStartBuilder(MacroRegionStart? source)
+        : base(source) {
+    }
+
+    public MacroRegionStartBuilder(
+        StringSlice text,
+        StringSlice payload,
+        LocationTag locationTag,
+        SyntaxNodeType kind,
+        Nullable<SyntaxTrivia> syntaxTrivia,
+        RegionDirectiveTriviaSyntax? regionDirective,
+        AttributeSyntax? attribute,
+        SyntaxNode? syntaxNode,
+        Location? location
+        ) : base(default) {
+        this.Text = text;
+        this._LocationTag = locationTag;
+        this._Kind = kind;
+        this._SyntaxTrivia = syntaxTrivia;
+        this._RegionDirective = regionDirective;
+        this._Attribute = attribute;
+        this._SyntaxNode = syntaxNode;
+        this.Location = location;
+    }
+
+    /// <summary>
+    /// for syntaxTrivia - comment
+    /// </summary>
+    /// <param name="text">The captured Text</param>
+    /// <param name="locationTag">the last part #line</param>
+    /// <param name="syntaxTrivia">syntaxTrivia means comment</param>
+    /// <param name="location">the location of this Text</param>
+    public MacroRegionStartBuilder(
+        StringSlice text,
+        StringSlice payload,
+        LocationTag locationTag,
+        SyntaxTrivia syntaxTrivia,
+        Location? location = default)
+        : this(text,
+              payload,
+              locationTag,
+              SyntaxNodeType.SyntaxTrivia, syntaxTrivia, default,
+              null, null,
+              location ?? syntaxTrivia.GetLocation()) { }
+
+    /// <summary>
+    /// for regionDirective - #region
+    /// </summary>
+    /// <param name="text">The captured Text</param>
+    /// <param name="locationTag">the last part #line</param>
+    /// <param name="regionDirective">regionDirective means #region</param>
+    /// <param name="Location">the location of this Text</param>
+    public MacroRegionStartBuilder(
+        StringSlice text,
+        StringSlice payload,
+        LocationTag locationTag,
+        RegionDirectiveTriviaSyntax regionDirective,
+        Location? Location = default)
+        : this(text, payload, locationTag,
+              SyntaxNodeType.RegionDirectiveTriviaSyntax, default, regionDirective,
+              null, null,
+              Location ?? regionDirective.GetLocation()) { }
+
+    public MacroRegionStartBuilder(
+        StringSlice text,
+        StringSlice payload,
+        LocationTag locationTag,
+        AttributeSyntax attribute,
+        SyntaxNode syntaxNode,
+        Location? Location = default)
+        : this(text, payload, locationTag,
+              SyntaxNodeType.AttributeSyntax, default, default,
+              attribute, syntaxNode,
+              Location ?? attribute.GetLocation()) { }
+
+    protected override void Awake(MacroRegionStart source) {
+        base.Awake(source);
+        this._LocationTag = source.LocationTag;
+        this._Kind = source.Kind;
+        this._SyntaxTrivia = source.SyntaxTrivia;
+        this._RegionDirective = source.RegionDirective;
+        this._Attribute = source.Attribute;
+        this._SyntaxNode = source.SyntaxNode;
+    }
+
+    private StringSlice? _Payload;
+
+    public StringSlice? Payload {
+        get {
+            if (this._Source is { } source) {
+                return source.Payload;
+            } else {
+                return this._Payload;
+            }
+        }
+        set {
+            this.EnsureAwake();
+            this._Payload = value;
+        }
+    }
+
+    private LocationTag _LocationTag;
+    public LocationTag LocationTag {
+        get {
+            if (this._Source is { } source) {
+                return source.LocationTag;
+            } else {
+                return this._LocationTag;
+            }
+        }
+        set {
+            this.EnsureAwake();
+            this._LocationTag = value;
+        }
+    }
+
+    private SyntaxNodeType _Kind;
+    public SyntaxNodeType Kind {
+        get {
+            if (this._Source is { } source) {
+                return source.Kind;
+            } else {
+                return this._Kind;
+            }
+        }
+        set {
+            this.EnsureAwake();
+            this._Kind = value;
+        }
+    }
+
+    private Nullable<SyntaxTrivia> _SyntaxTrivia;
+    public Nullable<SyntaxTrivia> SyntaxTrivia {
+        get {
+            if (this._Source is { } source) {
+                return source.SyntaxTrivia;
+            } else {
+                return this._SyntaxTrivia;
+            }
+        }
+        set {
+            this.EnsureAwake();
+            this._SyntaxTrivia = value;
+        }
+    }
+
+    private RegionDirectiveTriviaSyntax? _RegionDirective;
+    public RegionDirectiveTriviaSyntax? RegionDirective {
+        get {
+            if (this._Source is { } source) {
+                return source.RegionDirective;
+            } else {
+                return this._RegionDirective;
+            }
+        }
+        set {
+            this.EnsureAwake();
+            this._RegionDirective = value;
+        }
+    }
+
+    private AttributeSyntax? _Attribute;
+    public AttributeSyntax? Attribute {
+        get {
+            if (this._Source is { } source) {
+                return source.Attribute;
+            } else {
+                return this._Attribute;
+            }
+        }
+        set {
+            this.EnsureAwake();
+            this._Attribute = value;
+        }
+    }
+
+    private SyntaxNode? _SyntaxNode;
+    public SyntaxNode? SyntaxNode {
+        get {
+            if (this._Source is { } source) {
+                return source.SyntaxNode;
+            } else {
+                return this._SyntaxNode;
+            }
+        }
+        set {
+            this.EnsureAwake();
+            this._SyntaxNode = value;
+        }
+    }
+
+    public override MacroRegionStart Build() {
+        if ((this._Source is { } source)) {
+            return source;
+        }
+        if (!(this._Payload is { } payload)) {
+            throw new Exception("Payload is null");
+        }
+        return new MacroRegionStart(
+            Text: this.Text,
+            Payload: payload,
+            LocationTag: this.LocationTag,
+            Kind: this.Kind,
+            SyntaxTrivia: this.SyntaxTrivia,
+            RegionDirective: this.RegionDirective,
+            Attribute: this.Attribute,
+            SyntaxNode: this.SyntaxNode,
+            Location: this.Location);
+    }
 }

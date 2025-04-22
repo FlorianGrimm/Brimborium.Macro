@@ -8,11 +8,11 @@ namespace Brimborium.Macro.Parsing;
  
 public partial class MacroParserTests {
     [Fact]
-    public void TryGetMultiLineComment_BasicComment_Success() {
+    public void TryGetMultiLineComment_BasicComment_Fail() {
         var sourceCode = "/* comment */";
         var result = MacroParser.TryGetMultiLineComment(sourceCode, out var comment);
-        Assert.Equal(1, result);
-        Assert.Equal(" comment ", comment);
+        Assert.Equal(0, result);
+        Assert.Equal("", comment);
     }
 
     [Fact]
@@ -24,10 +24,10 @@ public partial class MacroParserTests {
     }
 
     [Fact]
-    public void TryGetMultiLineComment_EmptyComment_Success() {
+    public void TryGetMultiLineComment_EmptyComment_Failed() {
         var sourceCode = "/**/";
         var result = MacroParser.TryGetMultiLineComment(sourceCode, out var comment);
-        Assert.Equal(1, result);
+        Assert.Equal(0, result);
         Assert.True(comment.IsEmpty);
     }
 
@@ -60,11 +60,11 @@ comment ", comment);
     }
 
     [Fact]
-    public void TryGetMultiLineComment_WithLeadingWhitespace_Success() {
+    public void TryGetMultiLineComment_WithLeadingWhitespace_Failed() {
         var sourceCode = "    /* comment */";
         var result = MacroParser.TryGetMultiLineComment(sourceCode, out var comment);
-        Assert.Equal(1, result);
-        Assert.Equal(" comment ", comment);
+        Assert.Equal(0, result);
+        Assert.Equal("", comment);
     }
 
     [Fact]
@@ -126,27 +126,19 @@ comment ", comment);
     }
 
     [Fact]
-    public void TryGetMultiLineComment_WithMultipleSpaces_Success() {
+    public void TryGetMultiLineComment_WithMultipleSpaces_Failed() {
         var sourceCode = "/*   multiple   spaces   */";
         var result = MacroParser.TryGetMultiLineComment(sourceCode, out var comment);
-        Assert.Equal(1, result);
-        Assert.Equal("   multiple   spaces   ", comment);
+        Assert.Equal(0, result);
+        Assert.Equal("", comment);
     }
 
     [Fact]
-    public void TryGetMultiLineComment_WithTabs_Success() {
+    public void TryGetMultiLineComment_WithTabs_Failed() {
         var sourceCode = "/*\tTabbed\tContent\t*/";
         var result = MacroParser.TryGetMultiLineComment(sourceCode, out var comment);
-        Assert.Equal(1, result);
-        Assert.Equal("\tTabbed\tContent\t", comment);
-    }
-
-    [Fact]
-    public void TryGetMultiLineComment_WithMixedNewlines_Success() {
-        var sourceCode = "/* Line1\nLine2\r\nLine3\rLine4 */";
-        var result = MacroParser.TryGetMultiLineComment(sourceCode, out var comment);
-        Assert.Equal(1, result);
-        Assert.Equal(" Line1\nLine2\r\nLine3\rLine4 ", comment);
+        Assert.Equal(0, result);
+        Assert.Equal("", comment);
     }
 
     [Fact]
@@ -156,4 +148,21 @@ comment ", comment);
         Assert.Equal(0, result);
         Assert.True(comment.IsEmpty);
     }
+
+    [Fact]
+    public void TryGetMultiLineComment_Macro_Success() {
+        var sourceCode = "/* Macro Text */";
+        var result = MacroParser.TryGetMultiLineComment(sourceCode, out var comment);
+        Assert.Equal(1, result);
+        Assert.Equal("Text", comment.ToString());
+    }
+
+    [Fact]
+    public void TryGetMultiLineComment_EndMacro_Success() {
+        var sourceCode = "/* EndMacro Text */";
+        var result = MacroParser.TryGetMultiLineComment(sourceCode, out var comment);
+        Assert.Equal(2, result);
+        Assert.Equal("Text", comment.ToString());
+    }
+
 }

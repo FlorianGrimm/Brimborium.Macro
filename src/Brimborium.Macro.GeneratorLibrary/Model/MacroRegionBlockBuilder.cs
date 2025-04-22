@@ -5,29 +5,31 @@ using System.Text;
 
 namespace Brimborium.Macro.Model;
 
-public sealed class MacroRegionBlockBuilder {
+public sealed class MacroRegionBlockBuilder : MacroRegionNodeBuilder {
 
     public static MacroRegionBlockBuilder Empty => new MacroRegionBlockBuilder(
-        MacroRegionStart.Empty,
-        Children: [],
+        Start: default,
+        Children: default,
         End: default,
         Error: default);
 
     public MacroRegionBlockBuilder(
-        MacroRegionStart Start,
-        List<MacroRegionBlockBuilder> Children,
-        MacroRegionEnd End,
+        MacroRegionStartBuilder? Start,
+        List<MacroRegionBlockBuilder>? Children,
+        MacroRegionEndBuilder? End,
         string? Error
     ) {
         this.Start = Start;
-        this.Children.AddRange(Children);
+        if (Children is { }) { 
+            this.Children.AddRange(Children);
+        }
         this.End = End;
         this.Error = Error;
     }
 
-    public MacroRegionStart Start { get; set; }
-    public List<MacroRegionBlockBuilder> Children { get; } = [];
-    public MacroRegionEnd End { get; set; }
+    public MacroRegionStart? Start { get; set; }
+    public List<MacroRegionBlockBuilder> Children { get; private set; } = [];
+    public MacroRegionEnd? End { get; set; }
     public string? Error { get; set; }
 
 

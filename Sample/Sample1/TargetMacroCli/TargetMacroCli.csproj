@@ -5,10 +5,13 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>Brimborium.Macro</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Brimborium.Macro.CliLibrary\Brimborium.Macro.CliLibrary.csproj" />
+    <ProjectReference Include="..\..\..\external\Mediator\src\Mediator\Mediator.csproj" />
+    <ProjectReference Include="..\..\..\external\Mediator\src\Mediator.SourceGenerator\Mediator.SourceGenerator.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

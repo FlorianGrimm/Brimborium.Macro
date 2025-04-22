@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿#pragma warning disable RS1036 // Specify analyzer banned API enforcement setting
+
+using System.Collections.Immutable;
 
 namespace Mediator.SourceGenerator;
 

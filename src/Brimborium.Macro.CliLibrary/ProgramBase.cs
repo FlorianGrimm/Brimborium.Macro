@@ -75,8 +75,11 @@ public class MacroApplication {
         var macroApplication = cla.GetRequiredService<MacroApplication>();
 
         if (macroApplication.AppTargets.GetTargetByName("parseCore") is null) {
-            macroApplication.AppTargets.Add("parseCore", [], async () => { 
-                var parseResponse = await cla.GetRequiredService<IMediator>().Send(new ParseRequest());
+            macroApplication.AppTargets.Add("parseCore", [], async () => {
+                var stateService = cla.GetRequiredService<StateService>();
+                var mediator = cla.GetRequiredService<IMediator>();
+                var parseResponse = await mediator.Send(new ParseSolutionRequest(stateService));
+                
             });
         }
         if (macroApplication.AppTargets.GetTargetByName("parse") is null) {

@@ -1,4 +1,7 @@
 ﻿using Brimborium.Macro.Parsing;
+using Brimborium.Text;
+
+using Microsoft.CodeAnalysis;
 
 using System.Collections.Immutable;
 using System.Text;
@@ -6,13 +9,21 @@ using System.Text;
 namespace Brimborium.Macro.Model;
 
 public sealed record class MacroRegionBlock(
-    MacroRegionStart Start,
-    ImmutableArray<MacroRegionBlock> Children,
-    MacroRegionEnd End,
-    string? Error
-    ) {
+    StringSlice Text,
+    Location? Location,
+    MacroRegionStart? Start,
+    ImmutableArray<MacroRegionNode> Children,
+    MacroRegionEnd? End
+    //string? Error
+    ) : MacroRegionNode(Text, Location)
+    , IMacroRegionNode<MacroRegionBlockBuilder> {
+    public override IMacroRegionNodeBuilder ConvertToBuilder() => this.ToBuilder();
+    public MacroRegionBlockBuilder ToBuilder() => new MacroRegionBlockBuilder(this);
+
+
+#if false
     public static MacroRegionBlock Empty => new MacroRegionBlock(
-        MacroRegionStart.Empty,
+        Start: default,
         Children: ImmutableArray<MacroRegionBlock>.Empty,
         End: default,
         Error: default);
@@ -32,9 +43,9 @@ public sealed record class MacroRegionBlock(
         }
 
         var result= new MacroRegionBlockBuilder(
-            Start: this.Start.ToBuilder(),
+            Start: this.Start?.ToBuilder() ?? new MacroRegionStartBuilder(),
               Children: builderChildren,
-              End: this.End.ToBuilder(),
+              End: this.End?.ToBuilder() ?? new MacroRegionEndBuilder() ,
               Error: this.Error);
         return result;
     }
@@ -246,6 +257,86 @@ public sealed record class MacroRegionBlock(
             return this;
         } else {
             return this with { End = regionEnd };
+        }
+    }
+#endif
+}
+
+public sealed class MacroRegionBlockBuilder(MacroRegionBlock? source)
+    : MacroRegionNodeBuilder<MacroRegionBlock>(source) {
+    protected override void Awake(MacroRegionBlock source) {
+        base.Awake(source);
+        this._Start = source.Start?.ToBuilder();
+        if (0 < source.Children.Length) {
+            this._Children = new(source.Children.Length);
+            foreach (var instance in source.Children) {
+                var builder = instance.ConvertToBuilder();
+                this._Children.Add(builder);
+            }
+        }
+        this._End = source.End?.ToBuilder();
+    }
+
+    private MacroRegionStartBuilder? _Start;
+    public MacroRegionStartBuilder? Start {
+        get {
+            if (this._Source is { } source) {
+                return source.Start?.ToBuilder();
+            } else {
+                return this._Start;
+            }
+        }
+        set {
+            this.EnsureAwake();
+            this._Start = value;
+        }
+    }
+    private List<IMacroRegionNodeBuilder>? _Children;
+    public List<IMacroRegionNodeBuilder> Children {
+        get {
+            this.EnsureAwake();
+            return (this._Children ??= new());
+        }
+        set {
+            this.EnsureAwake();
+            this._Children = value;
+        }
+    }
+
+    private MacroRegionEndBuilder? _End;
+    public MacroRegionEndBuilder? End {
+        get {
+            this.EnsureAwake();
+            return this._End;
+        }
+        set {
+            this.EnsureAwake();
+            this._End = value;
+        }
+    }
+
+    public override MacroRegionBlock Build() {
+        if (this._Source is { } source) {
+            return source;
+        } else {
+            ImmutableArray<MacroRegionNode> targetChildren;
+            if (this._Children is { Count: > 0 } children) {
+                List<MacroRegionNode> listChildren = new();
+                foreach (var child in children) {
+                    var instance = child.ConvertToInstance();
+                    listChildren.Add(instance);
+                }
+                targetChildren = listChildren.ToImmutableArray();
+            } else {
+                targetChildren = ImmutableArray<MacroRegionNode>.Empty;
+            }
+            return new MacroRegionBlock(
+                Text: this.Text,
+                Location: this.Location,
+                Start: this._Start?.Build(),
+                Children: targetChildren,
+                End: this._End?.Build()
+                );
         }
     }
 }

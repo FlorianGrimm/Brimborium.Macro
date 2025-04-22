@@ -1,5 +1,7 @@
 
 
+using Brimborium.Text;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +16,7 @@ public partial class MacroParserTests {
         var text = "abcdef";
         var index = 3;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(3, result);
     }
@@ -24,7 +26,7 @@ public partial class MacroParserTests {
         var text = "abc\ndef";
         var index = 4;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(3, result);
     }
@@ -34,7 +36,7 @@ public partial class MacroParserTests {
         var text = "abc\r\ndef";
         var index = 5;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(3, result);
     }
@@ -44,7 +46,7 @@ public partial class MacroParserTests {
         var text = "abc\rdef";
         var index = 4;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(3, result);
     }
@@ -54,7 +56,7 @@ public partial class MacroParserTests {
         var text = "\nabc";
         var index = 0;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(0, result);
     }
@@ -64,7 +66,7 @@ public partial class MacroParserTests {
         var text = "abc";
         var index = 3;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(3, result);
     }
@@ -74,7 +76,7 @@ public partial class MacroParserTests {
         var text = "abc\r\n";
         var index = 5;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(3, result);
     }
@@ -84,7 +86,7 @@ public partial class MacroParserTests {
         var text = "abc\n\n\ndef";
         var index = 6;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(5, result);
     }
@@ -94,7 +96,7 @@ public partial class MacroParserTests {
         var text = "abc\r\n\r\ndef";
         var index = 7;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(5, result);
     }
@@ -104,7 +106,7 @@ public partial class MacroParserTests {
         var text = "";
         var index = 0;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(0, result);
     }
@@ -114,7 +116,7 @@ public partial class MacroParserTests {
         var text = "abc  \n  def";
         var index = 7;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(7, result);
     }
@@ -124,7 +126,7 @@ public partial class MacroParserTests {
         var text = "abc\ndef";
         var index = 3;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(3, result);
     }
@@ -134,7 +136,7 @@ public partial class MacroParserTests {
         var text = "abc\ndef";
         var index = 4;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(3, result);
     }
@@ -144,7 +146,7 @@ public partial class MacroParserTests {
         var text = "\r\n\n\r";
         var index = 2;
         
-        var result = MacroParser.GotoLeftIfNewline(text, index);
+        var result = ParserUtility.GotoLeftIfNewline(text, index);
         
         Assert.Equal(0, result);
     }
