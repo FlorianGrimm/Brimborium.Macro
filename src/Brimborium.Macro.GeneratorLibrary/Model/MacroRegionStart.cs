@@ -201,6 +201,7 @@ public class MacroRegionStartBuilder : MacroRegionNodeBuilder<MacroRegionStart> 
         Location? location
         ) : base(default) {
         this.Text = text;
+        this._Payload = payload;
         this._LocationTag = locationTag;
         this._Kind = kind;
         this._SyntaxTrivia = syntaxTrivia;

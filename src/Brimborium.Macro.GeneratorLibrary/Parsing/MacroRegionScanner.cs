@@ -6,12 +6,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Brimborium.Macro.Parsing;
 
 public sealed class MacroRegionScanner {
@@ -33,7 +27,10 @@ public sealed class MacroRegionScanner {
 
         List<PositionAndSyntax> listSyntaxTrivia = new(1024);
         foreach (var syntaxTrivia in _SyntaxTreeRoot.DescendantTrivia(null, false)) {
-            if (syntaxTrivia.IsKind(SyntaxKind.WhitespaceTrivia)) {
+            if (syntaxTrivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                || syntaxTrivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                || syntaxTrivia.IsKind(SyntaxKind.EndOfFileToken)
+                ) {
                 continue;
             }
             if (syntaxTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)) {
@@ -54,6 +51,7 @@ public sealed class MacroRegionScanner {
                 listSyntaxTrivia.Add(positionAndSyntax);
                 continue;
             }
+            continue;
         }
 
 #if false
@@ -155,7 +153,12 @@ public sealed class MacroRegionScanner {
         switch (kind) {
             case 1: {
                 MacroParser.SplitLocationTag(commentMacroText, out var macroText, out var locationTag);
-                var result = new MacroRegionStartBuilder(commentText, macroText, locationTag, currentTrivia, location);
+                var result = new MacroRegionStartBuilder(
+                    text: commentText,
+                    payload: macroText,
+                    locationTag: locationTag,
+                    syntaxTrivia: currentTrivia,
+                    location: location);
                 return new PositionAndSyntax(result);
             }
 
@@ -206,10 +209,90 @@ public sealed class MacroRegionScanner {
     }
 
     public MacroRegionTreeNode ParseRegions(List<PositionAndSyntax> listPositionAndSyntax, CancellationToken cancellationToken) {
-        var builder = new MacroRegionTreeNodeBuilder(null);
+        IMacroRegionTreeNodeBuilder currentBuilder = new MacroRegionTreeNodeBuilder(null);
+        var stack = new List<IMacroRegionTreeNodeBuilder>(32);
+        stack.Add(currentBuilder);
+        cancellationToken.ThrowIfCancellationRequested();
+        int positionStart = 0;
+        foreach (var positionAndSyntax in listPositionAndSyntax) {
+            var nodeBuilder = positionAndSyntax.MacroRegionNodeBuilder;
+            if (nodeBuilder is null) { continue; }
+            if (nodeBuilder is MacroRegionStartBuilder macroRegionStartBuilder) {
+                positionStart = AddConst(currentBuilder, positionStart, nodeBuilder.Text);
 
-        var result = builder.Build();
+                var macroRegionBlockBuilder = new MacroRegionBlockBuilder(default);
+                macroRegionBlockBuilder.Start = macroRegionStartBuilder;
+                stack.Add(macroRegionBlockBuilder);
+                currentBuilder.AddChild(macroRegionBlockBuilder);
+                currentBuilder = macroRegionBlockBuilder;
+            } else if (nodeBuilder is MacroRegionEndBuilder macroRegionEndBuilder) {
+                if (stack.Count < 2) {
+                    throw new Exception("Unbalanced region end");
+                }
+                var stackTop = stack[stack.Count - 1];
+                if (stackTop is MacroRegionBlockBuilder macroRegionBlockBuilder) {
+                    positionStart = AddConst(currentBuilder, positionStart, nodeBuilder.Text);
+
+                    macroRegionBlockBuilder.End = macroRegionEndBuilder;
+                    stack.RemoveAt(stack.Count - 1);
+                    currentBuilder = stack[stack.Count - 1];
+                } else {
+                    throw new Exception("Unbalanced region end");
+                }
+            } else {
+                // currentBuilder.AddChild(nodeBuilder);
+                throw new Exception("Unexpected");
+            }
+
+            /*
+                        if (node.Kind == SyntaxNodeType.RegionStart) {
+                            var newNode = new MacroRegionTreeNodeBuilder(node);
+                            stack.Add(newNode);
+                            currentBuilder.AddChild(newNode);
+                            currentBuilder = newNode;
+                        } else if (node.Kind == SyntaxNodeType.RegionEnd) {
+                            if (stack.Count < 2) {
+                                throw new Exception("Unbalanced region end");
+                            }
+                            stack.RemoveAt(stack.Count - 1);
+                            currentBuilder = stack.Last();
+                        } else {
+                            currentBuilder.AddChild(node);
+                        }
+            */
+            //if (positionAndSyntax.MacroRegionNodeBuilder is { } macroRegionNodeBuilder) {
+            //    currentBuilder.Add(macroRegionNodeBuilder);
+            //} else if (positionAndSyntax.SyntaxTrivia is { } syntaxTrivia) {
+            //    var node = new MacroRegionNodeBuilder(syntaxTrivia);
+            //    currentBuilder.Add(node);
+            //} else if (positionAndSyntax.Attribute is { } attribute) {
+            //    var node = new MacroRegionNodeBuilder(attribute);
+            //    currentBuilder.Add(node);
+            //}
+        }
+        {
+            var length = this._SourceCode.Length;
+            if (positionStart < length) {
+                var textSlice = this.GetSourceCodeStringSlice(new TextSpan(start: positionStart, length: length - positionStart));
+                var macroRegionConstant = new MacroRegionConstantBuilder(textSlice, null);
+                currentBuilder.AddChild(macroRegionConstant);
+            }
+        }
+
+        var result = currentBuilder.Build();
         return result;
+
+        int AddConst(IMacroRegionTreeNodeBuilder currentBuilder, int positionStart, StringSlice text) {
+            var (offset, length) = text.GetOffsetAndLength();
+            if (positionStart < offset) {
+                var textSlice = this.GetSourceCodeStringSlice(new TextSpan(start: positionStart, length: offset - positionStart));
+                var macroRegionConstant = new MacroRegionConstantBuilder(textSlice, null);
+                currentBuilder.AddChild(macroRegionConstant);
+                positionStart = offset + length;
+            }
+
+            return positionStart;
+        }
     }
 }
 

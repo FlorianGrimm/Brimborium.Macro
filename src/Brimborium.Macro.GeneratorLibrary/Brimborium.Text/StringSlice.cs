@@ -145,6 +145,15 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
     }
 
     /// <summary>
+    /// Calculates the start offset and length of the range object using a collection length.
+    /// </summary>
+    /// <returns>The start offset and length of the range.</returns>
+    public (int Offset, int Length) GetOffsetAndLength()
+        => (this.Text is null)
+            ? (Offset: 0, Length: 0)
+            : this.Range.GetOffsetAndLength(this.Text.Length);
+
+    /// <summary>
     /// Creates a new Value that is a substring of this slice, starting at the specified index.
     /// </summary>
     /// <param name="start">The zero-based starting character position of the substring in this slice.</param>

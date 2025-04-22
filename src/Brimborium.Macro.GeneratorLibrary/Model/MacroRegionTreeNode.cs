@@ -18,7 +18,8 @@ public sealed record class MacroRegionTreeNode(
 }
 
 public sealed class MacroRegionTreeNodeBuilder(MacroRegionTreeNode? source)
-    : MacroRegionNodeBuilder<MacroRegionTreeNode>(source) {
+    : MacroRegionNodeBuilder<MacroRegionTreeNode>(source)
+    , IMacroRegionTreeNodeBuilder {
 
     private List<IMacroRegionNodeBuilder>? _Children;
 

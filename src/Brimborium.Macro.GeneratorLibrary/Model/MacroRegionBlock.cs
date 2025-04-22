@@ -262,8 +262,10 @@ public sealed record class MacroRegionBlock(
 #endif
 }
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class MacroRegionBlockBuilder(MacroRegionBlock? source)
-    : MacroRegionNodeBuilder<MacroRegionBlock>(source) {
+    : MacroRegionNodeBuilder<MacroRegionBlock>(source)
+    , IMacroRegionTreeNodeBuilder {
     protected override void Awake(MacroRegionBlock source) {
         base.Awake(source);
         this._Start = source.Start?.ToBuilder();
@@ -338,5 +340,19 @@ public sealed class MacroRegionBlockBuilder(MacroRegionBlock? source)
                 End: this._End?.Build()
                 );
         }
+    }
+
+    public void AddChild(IMacroRegionNodeBuilder child) {
+        this.EnsureAwake();
+        (this._Children ??= new()).Add(child);
+    }
+
+    MacroRegionTreeNode IMacroRegionNodeBuilder<MacroRegionTreeNode>.Build() {
+        throw new NotImplementedException();
+    }
+
+    private string GetDebuggerDisplay() {
+        
+        return $"Block:{this.Start?.Kind},{this.Children.Count},{this.End?.Location}";
     }
 }

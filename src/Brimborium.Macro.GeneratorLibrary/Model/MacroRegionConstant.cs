@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Brimborium.Macro.Model;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public record class MacroRegionConstant(
     StringSlice Text,
     Location? Location
@@ -12,12 +13,16 @@ public record class MacroRegionConstant(
   , IMacroRegionNode<MacroRegionConstantBuilder> {
     public override IMacroRegionNodeBuilder ConvertToBuilder() => this.ToBuilder();
     public MacroRegionConstantBuilder ToBuilder() => new MacroRegionConstantBuilder(this);
+
+    private string GetDebuggerDisplay() {
+        var textLength = this.Text.Length;
+        var subText = (textLength < 30) ? this.Text : this.Text.Substring(0, 30);
+        return $"Const:{textLength}:{subText}";
+    }
 }
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class MacroRegionConstantBuilder : MacroRegionNodeBuilder<MacroRegionConstant> {
-    private readonly StringSlice _Text;
-    private readonly Location? _Location;
-
     public MacroRegionConstantBuilder(MacroRegionConstant? source = default) : base(source) {
     }
 
@@ -25,13 +30,17 @@ public sealed class MacroRegionConstantBuilder : MacroRegionNodeBuilder<MacroReg
         StringSlice text,
         Location? location
     ) : base(null) {
-        this._Text = text;
-        this._Location = location;
     }
 
     public override MacroRegionConstant Build() {
         return new MacroRegionConstant(
             Text: this.Text,
             Location: this.Location);
+    }
+
+    private string GetDebuggerDisplay() {
+        var textLength = this.Text.Length;
+        var subText = (textLength < 30) ? this.Text : this.Text.Substring(0, 30);
+        return $"Const:{textLength}:{subText}";
     }
 }

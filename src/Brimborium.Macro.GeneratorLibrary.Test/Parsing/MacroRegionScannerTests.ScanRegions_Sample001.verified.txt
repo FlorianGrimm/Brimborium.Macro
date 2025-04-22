@@ -1,0 +1,322 @@
+﻿[
+  {
+    Position: 127,
+    MacroRegionNodeBuilder: {
+      Kind: SyntaxTrivia,
+      SyntaxTrivia: {
+        Kind: MultiLineCommentTrivia,
+        Span: {
+          Start: 127,
+          Length: 18
+        },
+        ToString: /* Macro TestMe */
+      },
+      Text: {
+        Text:
+namespace Brimborium.Macro.Sample;
+
+internal partial class Sample001 {
+    public required string Name { get; set; }
+
+    /* Macro TestMe */
+    public required int Age { get; set; }
+    /* EndMacro */
+
+    /* Macro TestMe #10 */
+    public required System.DateTime Birthday { get; set; }
+    /* EndMacro #10 */
+
+    #region Macro TestMe #20
+    public required string Nickname { get; set; }
+    #endregion #20
+}
+
+internal partial class Sample001B {
+    public required string Value { get; set; }
+},
+        Range: {
+          Start: {
+            Value: 127,
+            IsFromEnd: false
+          },
+          End: {
+            Value: 145,
+            IsFromEnd: false
+          }
+        },
+        Length: 18,
+        IsEmpty: false
+      },
+      Location: {
+        Kind: SourceFile,
+        SourceSpan: {
+          Start: 127,
+          Length: 18
+        },
+        SourceTree: {
+          FilePath: TestDocument.cs,
+          Length: 518
+        }
+      }
+    }
+  },
+  {
+    Position: 194,
+    MacroRegionNodeBuilder: {
+      Payload: {
+        Text:
+namespace Brimborium.Macro.Sample;
+
+internal partial class Sample001 {
+    public required string Name { get; set; }
+
+    /* Macro TestMe */
+    public required int Age { get; set; }
+    /* EndMacro */
+
+    /* Macro TestMe #10 */
+    public required System.DateTime Birthday { get; set; }
+    /* EndMacro #10 */
+
+    #region Macro TestMe #20
+    public required string Nickname { get; set; }
+    #endregion #20
+}
+
+internal partial class Sample001B {
+    public required string Value { get; set; }
+},
+        Range: {
+          Start: {
+            Value: 205,
+            IsFromEnd: false
+          },
+          End: {
+            Value: 205,
+            IsFromEnd: false
+          }
+        },
+        IsEmpty: true
+      },
+      SyntaxTrivia: {
+        Kind: MultiLineCommentTrivia,
+        Span: {
+          Start: 194,
+          Length: 14
+        },
+        ToString: /* EndMacro */
+      },
+      Text: {
+        Text:
+namespace Brimborium.Macro.Sample;
+
+internal partial class Sample001 {
+    public required string Name { get; set; }
+
+    /* Macro TestMe */
+    public required int Age { get; set; }
+    /* EndMacro */
+
+    /* Macro TestMe #10 */
+    public required System.DateTime Birthday { get; set; }
+    /* EndMacro #10 */
+
+    #region Macro TestMe #20
+    public required string Nickname { get; set; }
+    #endregion #20
+}
+
+internal partial class Sample001B {
+    public required string Value { get; set; }
+},
+        Range: {
+          Start: {
+            Value: 194,
+            IsFromEnd: false
+          },
+          End: {
+            Value: 208,
+            IsFromEnd: false
+          }
+        },
+        Length: 14,
+        IsEmpty: false
+      },
+      Location: {
+        Kind: SourceFile,
+        SourceSpan: {
+          Start: 194,
+          Length: 14
+        },
+        SourceTree: {
+          FilePath: TestDocument.cs,
+          Length: 518
+        }
+      }
+    }
+  },
+  {
+    Position: 216,
+    MacroRegionNodeBuilder: {
+      LocationTag: {
+        LineIdentifier: 10,
+        IsEmpty: false
+      },
+      Kind: SyntaxTrivia,
+      SyntaxTrivia: {
+        Kind: MultiLineCommentTrivia,
+        Span: {
+          Start: 216,
+          Length: 22
+        },
+        ToString: /* Macro TestMe #10 */
+      },
+      Text: {
+        Text:
+namespace Brimborium.Macro.Sample;
+
+internal partial class Sample001 {
+    public required string Name { get; set; }
+
+    /* Macro TestMe */
+    public required int Age { get; set; }
+    /* EndMacro */
+
+    /* Macro TestMe #10 */
+    public required System.DateTime Birthday { get; set; }
+    /* EndMacro #10 */
+
+    #region Macro TestMe #20
+    public required string Nickname { get; set; }
+    #endregion #20
+}
+
+internal partial class Sample001B {
+    public required string Value { get; set; }
+},
+        Range: {
+          Start: {
+            Value: 216,
+            IsFromEnd: false
+          },
+          End: {
+            Value: 238,
+            IsFromEnd: false
+          }
+        },
+        Length: 22,
+        IsEmpty: false
+      },
+      Location: {
+        Kind: SourceFile,
+        SourceSpan: {
+          Start: 216,
+          Length: 22
+        },
+        SourceTree: {
+          FilePath: TestDocument.cs,
+          Length: 518
+        }
+      }
+    }
+  },
+  {
+    Position: 304,
+    MacroRegionNodeBuilder: {
+      Payload: {
+        Text:
+namespace Brimborium.Macro.Sample;
+
+internal partial class Sample001 {
+    public required string Name { get; set; }
+
+    /* Macro TestMe */
+    public required int Age { get; set; }
+    /* EndMacro */
+
+    /* Macro TestMe #10 */
+    public required System.DateTime Birthday { get; set; }
+    /* EndMacro #10 */
+
+    #region Macro TestMe #20
+    public required string Nickname { get; set; }
+    #endregion #20
+}
+
+internal partial class Sample001B {
+    public required string Value { get; set; }
+},
+        Range: {
+          Start: {
+            Value: 316,
+            IsFromEnd: false
+          },
+          End: {
+            Value: 316,
+            IsFromEnd: false
+          }
+        },
+        IsEmpty: true
+      },
+      LocationTag: {
+        LineIdentifier: 10,
+        IsEmpty: false
+      },
+      SyntaxTrivia: {
+        Kind: MultiLineCommentTrivia,
+        Span: {
+          Start: 304,
+          Length: 18
+        },
+        ToString: /* EndMacro #10 */
+      },
+      Text: {
+        Text:
+namespace Brimborium.Macro.Sample;
+
+internal partial class Sample001 {
+    public required string Name { get; set; }
+
+    /* Macro TestMe */
+    public required int Age { get; set; }
+    /* EndMacro */
+
+    /* Macro TestMe #10 */
+    public required System.DateTime Birthday { get; set; }
+    /* EndMacro #10 */
+
+    #region Macro TestMe #20
+    public required string Nickname { get; set; }
+    #endregion #20
+}
+
+internal partial class Sample001B {
+    public required string Value { get; set; }
+},
+        Range: {
+          Start: {
+            Value: 304,
+            IsFromEnd: false
+          },
+          End: {
+            Value: 322,
+            IsFromEnd: false
+          }
+        },
+        Length: 18,
+        IsEmpty: false
+      },
+      Location: {
+        Kind: SourceFile,
+        SourceSpan: {
+          Start: 304,
+          Length: 18
+        },
+        SourceTree: {
+          FilePath: TestDocument.cs,
+          Length: 518
+        }
+      }
+    }
+  }
+]
